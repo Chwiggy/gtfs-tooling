@@ -6,3 +6,5 @@ fn main() {
 // TODO option: clipping by bounds
 // TODO option: filtering by various categories
 // TODO option: clipping by time
+
+// TODO think about visualisations
