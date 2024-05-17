@@ -2,14 +2,17 @@ mod gtfs;
 
 fn main() {
     // TODO add user input instead of hard coding.
-    let gtfs_path: String = String::from("test_data/20240513_fahrplaene_gesamtdeutschland_gtfs.zip");
+    let gtfs_path: String = String::from("test_data/sample-feed-1.zip");
 
-    let gtfs_file: gtfs::GtfsFile = gtfs::GtfsFile::new(&gtfs_path);
+    let mut gtfs_file = match gtfs::GtfsFile::new(&gtfs_path) {
+        Ok(gtfs_file) =>  gtfs_file,
+        Err(error) => panic!("{}", error)
+    };
+
+    
     let file_list: Vec<String> = gtfs_file.list_files();
 
     println!("GTFS archive contains: {:?}", file_list);
-
-
 }
 
 // TODO Reading in GTFS File
