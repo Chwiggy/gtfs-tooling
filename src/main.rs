@@ -1,6 +1,8 @@
+use polars::io::csv::CsvReader;
+use polars::prelude::SerReader;
+
 mod gtfs;
 
-use crate::gtfs::{GtfsObject, Stops};
 
 fn main() {
     // TODO add user input instead of hard coding.
@@ -13,14 +15,25 @@ fn main() {
 
     
     let file_list: Vec<String> = gtfs_file.list_files();
+    println!("GTFS archive contains: {:?}", &file_list);
 
-    println!("GTFS archive contains: {:?}", file_list);
+    let path: String = gtfs_path.clone();
+    let df = CsvReader::from_path(path).unwrap()
+        .has_header(true)
+        .finish();
 
-    // let agencies: Vec<Agency> = Agency::from_gtfs_file(&mut gtfs_file);
+    let agencies = match df {
+        Ok(data) =>  data,
+        Err(error) => panic!("Error: {}", error)
+    };
+
+    println!("{}", agencies);
 
 
-    let stop: Vec<Stops> = Stops::from_gtfs_file(&mut gtfs_file);
-    println!("{:?}",stop)
+    
+
+    
+    
 
 }
 
