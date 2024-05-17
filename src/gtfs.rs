@@ -1,11 +1,13 @@
 use core::fmt;
-use std::fs::File;
+use std::{fs::File, usize};
 use std::io::Read;
 
 use serde::{Serialize, Deserialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use csv;
+use csv::{self, DeserializeErrorKind};
+use csv::ErrorKind;
+use csv::Error;
 
 pub use zip::read::ZipArchive;
 
@@ -267,7 +269,118 @@ pub enum BikesAllowed {
     No = 2,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct StopTime {
+    pub trip_id: Option<String>,
+    pub arrival_time: Option<Time>,
+    pub departure_time: Option<Time>,
+    pub stop_id: Option<String>,
+    pub stop_sequence: Option<u64>,
+    pub stop_headsign: Option<String>,
+    pub pickup_type: Option<PickupType>,
+    pub drop_off_type: Option<PickupType>,
+    pub continuous_pickup: Option<PickupType>,
+    pub contiuous_drop_off: Option<PickupType>,
+    pub shape_dist_travelled: Option<f64>,
+    pub timepoint: Option<TimepointType>,
+}
 
+#[derive(Debug)]
+#[repr(C)]
+pub struct Time {
+    pub h: u64,
+    pub m: u64,
+    pub s: u64,
+}
+
+impl Serialize for Time {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let s = format!("{}:{}:{}", self.h, self.m, self.s);
+        serializer.serialize_str(&s)
+    }
+}
+
+// TODO add check for malformed minutes or seconds
+impl<'de> Deserialize<'de> for Time {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        let s: Vec<&str> = s.split(':').collect();
+        match s.len() {
+            3 => {
+                let h = s[0].parse().map_err(serde::de::Error::custom)?;
+                let m = s[1].parse().map_err(serde::de::Error::custom)?;
+                let s = s[2].parse().map_err(serde::de::Error::custom)?;
+                Ok(Time { h, m, s })
+            },
+            _ => Err(serde::de::Error::custom("Malformatted time")),
+        }
+    }
+}
+
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum TimepointType {
+    Approximate = 0,
+    Exact = 1,
+}
+
+impl GtfsObject for StopTime {
+    const FILE: &'static str = "stop_times.txt";
+
+    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
+        let mut stop_times_text = gtfs_file.extract_by_name(Self::FILE);
+
+        let mut reader = csv::ReaderBuilder::new()
+            .from_reader(stop_times_text.as_bytes());
+        let iter = reader.deserialize();
+        let mut stop_times: Vec<StopTime> = Vec::new();
+        for result in iter {
+            match result {
+                Ok(record) => stop_times.push(record),
+                Err(error) => println!("Error {:?}: Disregarding record", error.kind())
+                    // {
+                    // match error.kind() {
+                    //     csv::ErrorKind::UnequalLengths { pos, expected_len:_, len}=> {
+                    //         let record: u64 =  pos.unwrap().record();
+                    //         let length: &u64 = len;
+                    //         let stripped_data = csv_strip(stop_times_text.to_owned(), record, *length);
+                    //     },
+                    //     _ => {
+                    //         println!("failure at {:?}", error.position().unwrap());
+                    //         println!("error {:?}", error.kind());
+                    //         println!("disregarding record")
+                    //     }
+                    // }
+                    
+                    
+                    // TODO try and deserialize the rest of the  stop_times here
+                
+            }
+            
+        }
+        stop_times
+    }
+}
+
+// TODO try and salvage shorter length records
+// fn csv_strip(csv_string: String, line: u64, length: u64) -> String{
+//     let lines = csv_string.split("\n");
+//     let result: Vec<&str> = Vec::new();
+    
+//     for line in lines {
+//         if line.len() != length {
+
+//         }
+//     }
+
+// }
 
 pub struct GtfsSpecError;
 

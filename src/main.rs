@@ -1,10 +1,10 @@
 mod gtfs;
 
-use crate::gtfs::{GtfsObject, Trip};
+use crate::gtfs::{GtfsObject, StopTime};
 
 fn main() {
     // TODO add user input instead of hard coding.
-    let gtfs_path: String = String::from("test_data/sample-feed-1.zip");
+    let gtfs_path: String = String::from("/home/lotte/code/github.com/chwiggy/gtfs-tooling/test_data/sample-feed-1.zip");
 
     let mut gtfs_file = match gtfs::GtfsFile::new(&gtfs_path) {
         Ok(gtfs_file) =>  gtfs_file,
@@ -19,7 +19,7 @@ fn main() {
     // let agencies: Vec<Agency> = Agency::from_gtfs_file(&mut gtfs_file);
 
 
-    let stop: Vec<Trip> = Trip::from_gtfs_file(&mut gtfs_file);
+    let stop: Vec<StopTime> = StopTime::from_gtfs_file(&mut gtfs_file);
     println!("{:?}",stop)
     
 }
