@@ -1,5 +1,9 @@
 use core::fmt;
 use std::fs::File;
+use std::io::Read;
+
+use serde::{Serialize, Deserialize};
+use csv;
 
 pub use zip::read::ZipArchive;
 
@@ -53,7 +57,49 @@ impl GtfsFile {
 
         Ok(true)
     }
+    
+    pub fn extract_by_name(&mut self, name: &str) -> String {
+        let mut buffer = String::new();
+        match self.archive.by_name(name).unwrap().read_to_string(&mut buffer) {
+            Ok(_) => buffer,
+            _ => panic!("Could not extract file {}", name)
+        }
+    }
+
 }
+
+pub trait FromGtfsFile {
+    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> where Self: Sized;
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Agency {
+    pub agency_id: Option<String>,
+    pub agency_name: String,
+    pub agency_url: String,
+    pub agency_timezone: String,
+    pub agency_lang: Option<String>,
+    pub agency_phone: Option<String>,
+    pub agency_fare_url: Option<String>,
+    pub agency_email: Option<String>,
+}
+
+impl FromGtfsFile for Agency {
+    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
+        let agency_text = gtfs_file.extract_by_name("agency.txt");
+        println!("{}", &agency_text);
+
+        let mut reader = csv::Reader::from_reader(agency_text.as_bytes());
+        let iter = reader.deserialize();
+        let mut agencies: Vec<Agency> = Vec::new();
+        for result in iter {
+            let record: Agency = result.unwrap();
+            agencies.push(record)
+        }
+        agencies
+    }
+}
+
 
 pub struct GtfsSpecError;
 
@@ -68,6 +114,9 @@ impl fmt::Debug for GtfsSpecError {
         write!(f, "{{ file: {}, line: {} }}", file!(), line!())
     }
 }
+
+
+
 
 #[test]
 fn test_new_gtfsfile_loading() {
