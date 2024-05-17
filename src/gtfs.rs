@@ -3,6 +3,8 @@ use std::fs::File;
 use std::io::Read;
 
 use serde::{Serialize, Deserialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
+
 use csv;
 
 pub use zip::read::ZipArchive;
@@ -68,8 +70,10 @@ impl GtfsFile {
 
 }
 
-pub trait FromGtfsFile {
+pub trait GtfsObject {
     fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> where Self: Sized;
+
+    const FILE: &'static str;
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -84,10 +88,9 @@ pub struct Agency {
     pub agency_email: Option<String>,
 }
 
-impl FromGtfsFile for Agency {
+impl GtfsObject for Agency {
     fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
-        let agency_text = gtfs_file.extract_by_name("agency.txt");
-        println!("{}", &agency_text);
+        let agency_text = gtfs_file.extract_by_name(Self::FILE);
 
         let mut reader = csv::Reader::from_reader(agency_text.as_bytes());
         let iter = reader.deserialize();
@@ -98,6 +101,65 @@ impl FromGtfsFile for Agency {
         }
         agencies
     }
+
+    const FILE: &'static str = "agency.txt";
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Stops {
+    pub stop_id: String,
+    pub stop_code: Option<String>,
+    pub stop_name: Option<String>,
+    pub tts_stop_name: Option<String>,
+    pub stop_desc: Option<String>,
+    pub stop_lat: Option<f64>,
+    pub stop_lon: Option<f64>,
+    pub zone_id: Option<String>,
+    pub stop_url: Option<String>,
+    pub location_type: Option<LocationType>,
+    pub parent_station: Option<String>,
+    pub stop_timezone: Option<String>,
+    pub wheelchair_boarding: Option<WheelchairAccessibility>,
+    pub level_id: Option<String>,
+    pub platform_code: Option<String>,
+}
+
+impl GtfsObject for Stops {
+    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
+        let stops_text = gtfs_file.extract_by_name(Self::FILE);
+
+        let mut reader = csv::Reader::from_reader(stops_text.as_bytes());
+        let iter = reader.deserialize();
+        let mut stops: Vec<Stops> = Vec::new();
+        for result in iter {
+            let record: Stops = result.unwrap();
+            stops.push(record)
+        }
+        stops
+    }
+
+    const FILE: &'static str = "stops.txt";
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum LocationType {
+    Stop = 0,
+    Station = 1,
+    EntranceExit = 2,
+    GenericNode = 3,
+    BoardingArea = 4,
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum WheelchairAccessibility {
+    // NB: These depend on other fields in the stop field and are a bit of a mess. Please consider
+    // them to be -ish
+    Unknown = 0,
+    Yes = 1,
+    No = 2,
 }
 
 

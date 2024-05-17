@@ -1,10 +1,10 @@
 mod gtfs;
 
-use crate::gtfs::{Agency, FromGtfsFile};
+use crate::gtfs::{GtfsObject, Stops};
 
 fn main() {
     // TODO add user input instead of hard coding.
-    let gtfs_path: String = String::from("test_data/20240513_fahrplaene_gesamtdeutschland_gtfs.zip");
+    let gtfs_path: String = String::from("test_data/sample-feed-1.zip");
 
     let mut gtfs_file = match gtfs::GtfsFile::new(&gtfs_path) {
         Ok(gtfs_file) =>  gtfs_file,
@@ -16,10 +16,11 @@ fn main() {
 
     println!("GTFS archive contains: {:?}", file_list);
 
-    let agencies: Vec<Agency> = Agency::from_gtfs_file(&mut gtfs_file);
+    // let agencies: Vec<Agency> = Agency::from_gtfs_file(&mut gtfs_file);
 
-    println!("{:?}",agencies)
 
+    let stop: Vec<Stops> = Stops::from_gtfs_file(&mut gtfs_file);
+    println!("{:?}",stop)
 
 }
 
