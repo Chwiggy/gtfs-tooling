@@ -106,7 +106,7 @@ impl GtfsObject for Agency {
 }
 
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Stops {
     pub stop_id: String,
     pub stop_code: Option<String>,
@@ -142,7 +142,7 @@ impl GtfsObject for Stops {
     const FILE: &'static str = "stops.txt";
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
 #[repr(u8)]
 pub enum LocationType {
     Stop = 0,
@@ -152,7 +152,7 @@ pub enum LocationType {
     BoardingArea = 4,
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
 #[repr(u8)]
 pub enum WheelchairAccessibility {
     // NB: These depend on other fields in the stop field and are a bit of a mess. Please consider
@@ -161,6 +161,66 @@ pub enum WheelchairAccessibility {
     Yes = 1,
     No = 2,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Route {
+    pub route_id: String,
+    pub agency_id: Option<String>,
+    pub route_short_name: Option<String>,
+    pub route_long_name: Option<String>,
+    pub route_desc: Option<String>,
+    pub route_type: Option<RouteType>,
+    pub route_url: Option<String>,
+    pub route_color: Option<String>,
+    pub route_text_color: Option<String>,
+    pub route_sort_order: Option<u64>,
+    pub continuous_pickup: Option<PickupType>,
+    pub continuous_drop_off: Option<PickupType>,
+    pub network_id: Option<String>,
+}
+
+
+impl GtfsObject for Route {
+    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
+        let routes_text = gtfs_file.extract_by_name(Self::FILE);
+
+        let mut reader = csv::Reader::from_reader(routes_text.as_bytes());
+        let iter = reader.deserialize();
+        let mut routes: Vec<Route> = Vec::new();
+        for result in iter {
+            let record: Route = result.unwrap();
+            routes.push(record)
+        }
+        routes
+    }
+
+    const FILE: &'static str = "routes.txt";
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum RouteType {
+    Tram = 0,
+    Metro = 1,
+    Rail = 2,
+    Bus = 3,
+    Ferry = 4,
+    CableTram = 5,
+    AerialLift = 6,
+    Funicular = 7,
+    Trolleybus = 11,
+    Monorail = 12,
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum PickupType {
+    RegularSchedule = 0,
+    NoPickup = 1,
+    PhoneAgency = 2,
+    CoordinateWithDriver = 3,
+}
+
 
 
 pub struct GtfsSpecError;
@@ -201,4 +261,34 @@ fn test_new_broken_gtfs() {
         Ok(_) => panic!("This gtfs file should have been rejected as invalid"),
         Err(error) => println!("correctly rejected invalid gtfs file, with error {}", error)
     };
+}
+
+#[test]
+fn test_different_parsings() {
+    let path: String = String::from("test_data/sample-feed-1.zip");
+    let mut gtfs_file = GtfsFile::new(&path).unwrap();
+    let stops = Stops::from_gtfs_file(&mut gtfs_file);
+
+    let result = &stops[0];
+
+    let expected = &Stops {
+        stop_id: String::from("FUR_CREEK_RES"),
+        stop_code: None,
+        stop_name: Some(String::from("Furnace Creek Resort (Demo)")),
+        tts_stop_name: None,
+        stop_desc: None,
+        stop_lat: Some(36.425288),
+        stop_lon: Some(-117.133162),
+        zone_id: None,
+        stop_url: None,
+        location_type: None,
+        parent_station: None,
+        stop_timezone: None,
+        wheelchair_boarding: None,
+        level_id: None,
+        platform_code: None
+    };
+
+    assert_eq!(result, expected)
+    
 }

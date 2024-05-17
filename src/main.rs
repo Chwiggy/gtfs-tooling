@@ -1,6 +1,6 @@
 mod gtfs;
 
-use crate::gtfs::{GtfsObject, Stops};
+use crate::gtfs::{GtfsObject, Route};
 
 fn main() {
     // TODO add user input instead of hard coding.
@@ -19,9 +19,9 @@ fn main() {
     // let agencies: Vec<Agency> = Agency::from_gtfs_file(&mut gtfs_file);
 
 
-    let stop: Vec<Stops> = Stops::from_gtfs_file(&mut gtfs_file);
+    let stop: Vec<Route> = Route::from_gtfs_file(&mut gtfs_file);
     println!("{:?}",stop)
-
+    
 }
 
 
