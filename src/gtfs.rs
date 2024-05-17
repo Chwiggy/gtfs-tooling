@@ -1,6 +1,6 @@
 use core::fmt;
 use std::fs::File;
-
+use std::io::Read;
 pub use zip::read::ZipArchive;
 
 pub struct GtfsFile {
@@ -52,6 +52,14 @@ impl GtfsFile {
         } 
 
         Ok(true)
+    }
+
+    pub fn extract_by_name(&mut self, name: &str) -> String {
+        let mut buffer = String::new();
+        match self.archive.by_name(name).unwrap().read_to_string(&mut buffer) {
+            Ok(_) => buffer,
+            _ => panic!("Could not extract file {}", name)
+        }
     }
 }
 
