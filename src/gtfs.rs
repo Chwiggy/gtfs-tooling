@@ -221,6 +221,52 @@ pub enum PickupType {
     CoordinateWithDriver = 3,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Trip {
+    pub route_id: String,
+    pub service_id: String,
+    pub trip_id: String,
+    pub trip_headsign: Option<String>,
+    pub trip_short_name: Option<String>,
+    pub direction_id: Option<Direction>,
+    pub block_id: Option<String>,
+    pub shape_id: Option<String>,
+    pub wheelchair_accessible: Option<WheelchairAccessibility>,
+    pub bikes_allowed: Option<BikesAllowed>,
+}
+
+impl GtfsObject for Trip {
+    const FILE: &'static str = "trips.txt";
+
+    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
+        let trip_text = gtfs_file.extract_by_name(Self::FILE);
+
+        let mut reader = csv::Reader::from_reader(trip_text.as_bytes());
+        let iter = reader.deserialize();
+        let mut trips: Vec<Trip> = Vec::new();
+        for result in iter {
+            let record: Trip = result.unwrap();
+            trips.push(record)
+        }
+        trips
+    }
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum Direction {
+    Outbound = 0,
+    Inbound = 1,
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum BikesAllowed {
+    Unknown = 0,
+    Yes = 1,
+    No = 2,
+}
+
 
 
 pub struct GtfsSpecError;
