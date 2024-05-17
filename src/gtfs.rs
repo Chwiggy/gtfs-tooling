@@ -26,3 +26,17 @@ impl GtfsFile {
         files
     }
 }
+
+#[test]
+fn test_new_gtfsfile() {
+    let data: Vec<&str> = vec!["agency.txt", "calendar.txt", "calendar_dates.txt", "feed_info.txt", "frequencies.txt", "levels.txt", "pathways.txt", "routes.txt", "shapes.txt", "stop_times.txt", "stops.txt", "transfers.txt", "trips.txt", "Beschreibung_DELFI-Datensatz_GTFS_20240513.pdf"];
+    let mut expected: Vec<String> = Vec::new();
+    for file in data {
+        expected.push(String::from(file));
+    }
+
+    let path: String = String::from("test_data/20240513_fahrplaene_gesamtdeutschland_gtfs.zip");
+    let result: Vec<String> = GtfsFile::new(&path).list_files();
+
+    assert_eq!(expected, result);
+}
