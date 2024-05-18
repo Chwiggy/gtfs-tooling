@@ -484,8 +484,37 @@ impl fmt::Debug for GtfsSpecError {
     }
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct CalendarDates {
+    pub service_id: String,
+    #[serde(with = "date")]
+    pub date: NaiveDate,
+    pub exception_type: CalendarException,
+}
 
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum CalendarException {
+    Added = 1,
+    Removed = 2,
+}
 
+impl GtfsObject for CalendarDates {
+    const FILE: &'static str = "calendar_dates.txt";
+
+    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
+        let calendar_dates_text = gtfs_file.extract_by_name(Self::FILE);
+
+        let mut reader = csv::Reader::from_reader(calendar_dates_text.as_bytes());
+        let iter = reader.deserialize();
+        let mut calendar_dates: Vec<CalendarDates> = Vec::new();
+        for result in iter {
+            let record: CalendarDates = result.unwrap();
+            calendar_dates.push(record)
+        }
+        calendar_dates
+    }
+}
 
 #[test]
 fn test_new_gtfsfile_loading() {
