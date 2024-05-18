@@ -4,6 +4,9 @@ use std::io::Read;
 
 use serde::{Serialize, Deserialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde_with::{serde_as,BoolFromInt};
+
+use chrono::NaiveDate;
 
 use csv;
 
@@ -399,6 +402,72 @@ fn csv_add_commas(csv_string: String, expected_len: u64) -> String{
     }
     let test = result.join("\n");
     test
+}
+
+#[serde_as]
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Calendar {
+    pub service_id: String,
+    #[serde_as(as = "BoolFromInt")]
+    pub monday: bool,
+    #[serde_as(as = "BoolFromInt")]
+    pub tuesday: bool,
+    #[serde_as(as = "BoolFromInt")]
+    pub wednesday: bool,
+    #[serde_as(as = "BoolFromInt")]
+    pub thursday: bool,
+    #[serde_as(as = "BoolFromInt")]
+    pub friday: bool,
+    #[serde_as(as = "BoolFromInt")]
+    pub saturday: bool,
+    #[serde_as(as = "BoolFromInt")]
+    pub sunday: bool,
+    #[serde(with = "date")]
+    pub start_date: NaiveDate,
+    #[serde(with = "date")]
+    pub end_date: NaiveDate,
+}
+
+mod date {
+    use chrono::NaiveDate;
+    use serde::{self, Deserialize, Deserializer, Serializer};
+
+    const FORMAT: &str = "%Y%m%d";
+
+    pub fn serialize<S>(date: &NaiveDate, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let s = format!("{}", date.format(FORMAT));
+        serializer.serialize_str(&s)
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        let dt = NaiveDate::parse_from_str(&s, FORMAT).map_err(serde::de::Error::custom)?;
+        Ok(dt)
+    }
+
+}
+
+impl GtfsObject for Calendar {
+    const FILE: &'static str = "calendar.txt";
+
+    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
+        let calendar_text = gtfs_file.extract_by_name(Self::FILE);
+
+        let mut reader = csv::Reader::from_reader(calendar_text.as_bytes());
+        let iter = reader.deserialize();
+        let mut calendar: Vec<Calendar> = Vec::new();
+        for result in iter {
+            let record: Calendar = result.unwrap();
+            calendar.push(record)
+        }
+        calendar
+    }
 }
 
 pub struct GtfsSpecError;
