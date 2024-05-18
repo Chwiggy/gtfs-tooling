@@ -5,9 +5,7 @@ use std::io::Read;
 use serde::{Serialize, Deserialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use csv::{self, DeserializeErrorKind};
-use csv::ErrorKind;
-use csv::Error;
+use csv;
 
 pub use zip::read::ZipArchive;
 
@@ -335,52 +333,73 @@ impl GtfsObject for StopTime {
     const FILE: &'static str = "stop_times.txt";
 
     fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
-        let mut stop_times_text = gtfs_file.extract_by_name(Self::FILE);
-
+        let stop_times_text = gtfs_file.extract_by_name(Self::FILE);
         let mut reader = csv::ReaderBuilder::new()
             .from_reader(stop_times_text.as_bytes());
-        let iter = reader.deserialize();
+        let iter = reader.deserialize();       
         let mut stop_times: Vec<StopTime> = Vec::new();
+        let mut recoverable_errors: Vec<csv::Error> = Vec::new();
         for result in iter {
             match result {
                 Ok(record) => stop_times.push(record),
-                Err(error) => println!("Error {:?}: Disregarding record", error.kind())
-                    // {
-                    // match error.kind() {
-                    //     csv::ErrorKind::UnequalLengths { pos, expected_len:_, len}=> {
-                    //         let record: u64 =  pos.unwrap().record();
-                    //         let length: &u64 = len;
-                    //         let stripped_data = csv_strip(stop_times_text.to_owned(), record, *length);
-                    //     },
-                    //     _ => {
-                    //         println!("failure at {:?}", error.position().unwrap());
-                    //         println!("error {:?}", error.kind());
-                    //         println!("disregarding record")
-                    //     }
-                    // }
-                    
-                    
-                    // TODO try and deserialize the rest of the  stop_times here
-                
+                Err(error) => {
+                    println!("Error {:?}", error.kind());
+                    match error.kind() {
+                        csv::ErrorKind::UnequalLengths { pos: _, expected_len:_, len:_} => {
+                            recoverable_errors.push(error);
+                        },
+                        _ => panic!("unexpected error occured while reading csv!")
+                    }
+                }                
             }
             
         }
-        stop_times
+        if recoverable_errors.is_empty() {
+            return stop_times;
+        } else {
+            let mut new_stop_times: Vec<StopTime> = Vec::new();
+            let mut expected: u64 = 0;
+            for error in recoverable_errors {
+                if let csv::ErrorKind::UnequalLengths { pos:_, expected_len, len: _ } = error.kind().to_owned() {
+                    expected = *expected_len;
+                };
+            }
+            let new_csv_text: String = csv_add_commas(stop_times_text, expected);
+            let mut reader = csv::ReaderBuilder::new()
+                .flexible(true)
+                .from_reader(new_csv_text.as_bytes());
+            let new_iter = reader.deserialize();
+            for result in new_iter {
+                new_stop_times.push(result.unwrap());
+            }
+            return new_stop_times;
+        }
     }
 }
 
-// TODO try and salvage shorter length records
-// fn csv_strip(csv_string: String, line: u64, length: u64) -> String{
-//     let lines = csv_string.split("\n");
-//     let result: Vec<&str> = Vec::new();
+
+
+fn csv_add_commas(csv_string: String, expected_len: u64) -> String{
+    let lines = csv_string.lines();
+    let mut result: Vec<String> = Vec::new();
     
-//     for line in lines {
-//         if line.len() != length {
-
-//         }
-//     }
-
-// }
+    for line in lines {
+        let trimmed_line = line.trim_end_matches("\n");
+        let line_length = trimmed_line.split(",").count();
+        if line_length != expected_len as usize {
+            let missing_commas = expected_len - line_length as u64;
+            let mut new_line = String::from(trimmed_line);
+            for _ in  0..missing_commas {
+                new_line.push_str(",");
+            }
+            result.push(new_line);
+        } else {
+            result.push(line.to_owned());
+        }
+    }
+    let test = result.join("\n");
+    test
+}
 
 pub struct GtfsSpecError;
 
