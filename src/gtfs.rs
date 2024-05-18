@@ -215,7 +215,7 @@ pub enum RouteType {
     Monorail = 12,
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
 #[repr(u8)]
 pub enum PickupType {
     RegularSchedule = 0,
@@ -270,7 +270,7 @@ pub enum BikesAllowed {
     No = 2,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct StopTime {
     pub trip_id: Option<String>,
     pub arrival_time: Option<Time>,
@@ -286,7 +286,7 @@ pub struct StopTime {
     pub timepoint: Option<TimepointType>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 #[repr(C)]
 pub struct Time {
     pub h: u64,
@@ -325,7 +325,7 @@ impl<'de> Deserialize<'de> for Time {
 }
 
 
-#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
 #[repr(u8)]
 pub enum TimepointType {
     Approximate = 0,
@@ -543,11 +543,11 @@ fn test_new_broken_gtfs() {
 fn test_different_parsings() {
     let path: String = String::from("test_data/sample-feed-1.zip");
     let mut gtfs_file = GtfsFile::new(&path).unwrap();
-    let stops = Stops::from_gtfs_file(&mut gtfs_file);
+    let stops: Vec<Stops> = Stops::from_gtfs_file(&mut gtfs_file);
 
-    let result = &stops[0];
+    let result_stops = &stops[0];
 
-    let expected = &Stops {
+    let expected_stops = &Stops {
         stop_id: String::from("FUR_CREEK_RES"),
         stop_code: None,
         stop_name: Some(String::from("Furnace Creek Resort (Demo)")),
@@ -565,6 +565,26 @@ fn test_different_parsings() {
         platform_code: None
     };
 
-    assert_eq!(result, expected)
+    assert_eq!(result_stops, expected_stops);
+
+    let stop_times = StopTime::from_gtfs_file(&mut gtfs_file);
+    let result_stop_time = &stop_times[stop_times.len()-1];
+
+    let expected_stop_time = &StopTime {
+        trip_id: Some(String::from("AAMV4")),
+        arrival_time: Some(Time { h: 16, m: 0, s: 0 }),
+        departure_time: Some(Time { h: 16, m: 0, s: 0 }),
+        stop_id: Some(String::from("BEATTY_AIRPORT")),
+        stop_sequence: Some(2),
+        stop_headsign: None,
+        pickup_type: None,
+        drop_off_type: None,
+        continuous_pickup: None,
+        contiuous_drop_off: None,
+        shape_dist_travelled: None,
+        timepoint: None
+    };
+
+    assert_eq!(result_stop_time, expected_stop_time);
     
 }
