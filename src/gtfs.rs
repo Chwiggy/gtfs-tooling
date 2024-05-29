@@ -518,10 +518,10 @@ impl GtfsObject for CalendarDates {
 
 #[test]
 fn test_new_gtfsfile_loading() {
-    let data: Vec<&str> = vec!["agency.txt", "calendar.txt", "calendar_dates.txt", "fare_attributes.txt", "fare_rules.txt", "frequencies.txt", "routes.txt", "shapes.txt", "stop_times.txt", "stops.txt", "trips.txt"];
+    let expected_data: Vec<&str> = vec!["agency.txt", "calendar.txt", "calendar_dates.txt", "fare_attributes.txt", "fare_rules.txt", "frequencies.txt", "routes.txt", "shapes.txt", "stop_times.txt", "stops.txt", "trips.txt"];
     let mut expected: Vec<String> = Vec::new();
-    for file in data {
-        expected.push(String::from(file))
+    for file_name in expected_data {
+        expected.push(String::from(file_name))
     }
 
     let path: String = String::from("test_data/sample-feed-1.zip");
