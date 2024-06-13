@@ -1,26 +1,36 @@
 mod gtfs;
-
+use clap::Parser;
 use crate::gtfs::{GtfsObject, CalendarDates};
+
+#[derive(Parser)]
+struct Cli {
+    pattern:String,
+    path: std::path::PathBuf
+}
 
 fn main() {
     // TODO add user input instead of hard coding.
-    let gtfs_path: String = String::from("/home/lotte/code/github.com/chwiggy/gtfs-tooling/test_data/sample-feed-1.zip");
+    let args = Cli::parse();
 
-    let mut gtfs_file = match gtfs::GtfsFile::new(&gtfs_path) {
-        Ok(gtfs_file) =>  gtfs_file,
-        Err(error) => panic!("{}", error)
-    };
+    let gtfs_path = args.path;
 
+    if args.pattern == String::from("echo") {
+        let mut gtfs_file = match gtfs::GtfsFile::new(&gtfs_path) {
+            Ok(gtfs_file) =>  gtfs_file,
+            Err(error) => panic!("{}", error)
+        };
     
-    let file_list: Vec<String> = gtfs_file.list_files();
-
-    println!("GTFS archive contains: {:?}", file_list);
-
-    // let agencies: Vec<Agency> = Agency::from_gtfs_file(&mut gtfs_file);
-
-
-    let stop: Vec<CalendarDates> = CalendarDates::from_gtfs_file(&mut gtfs_file);
-    println!("{:?}",stop)
+        
+        let file_list: Vec<String> = gtfs_file.list_files();
+    
+        println!("GTFS archive contains: {:?}", file_list);
+    
+        // let agencies: Vec<Agency> = Agency::from_gtfs_file(&mut gtfs_file);
+    
+    
+        let stop: Vec<CalendarDates> = CalendarDates::from_gtfs_file(&mut gtfs_file);
+        println!("{:?}",stop)
+    }
     
 }
 

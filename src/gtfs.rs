@@ -1,4 +1,5 @@
 use core::fmt;
+use std::path::PathBuf;
 use std::{fs::File, usize};
 use std::io::Read;
 
@@ -18,7 +19,7 @@ pub struct GtfsFile {
 
 
 impl GtfsFile {
-    pub fn new(filepath: &String) -> Result<Self, GtfsSpecError> {
+    pub fn new(filepath: &PathBuf) -> Result<Self, GtfsSpecError> {
         let reader: File = std::fs::File::open(filepath).unwrap();
         let archive: ZipArchive<File> = ZipArchive::new(reader).unwrap();
         let mut gtfs_candidate = GtfsFile { archive };
@@ -524,7 +525,7 @@ fn test_new_gtfsfile_loading() {
         expected.push(String::from(file_name))
     }
 
-    let path: String = String::from("test_data/sample-feed-1.zip");
+    let path: PathBuf = PathBuf::from("test_data/sample-feed-1.zip");
     let result: Vec<String> = GtfsFile::new(&path).unwrap().list_files();
 
     assert_eq!(expected, result);
@@ -532,7 +533,7 @@ fn test_new_gtfsfile_loading() {
 
 #[test]
 fn test_new_broken_gtfs() {
-    let path = String::from("test_data/sample-feed-1-broken.zip");
+    let path: PathBuf = PathBuf::from("test_data/sample-feed-1-broken.zip");
     let _gtfs_file = match GtfsFile::new(&path) {
         Ok(_) => panic!("This gtfs file should have been rejected as invalid"),
         Err(error) => println!("correctly rejected invalid gtfs file, with error {}", error)
@@ -541,7 +542,7 @@ fn test_new_broken_gtfs() {
 
 #[test]
 fn test_different_parsings() {
-    let path: String = String::from("test_data/sample-feed-1.zip");
+    let path: PathBuf = PathBuf::from("test_data/sample-feed-1.zip");
     let mut gtfs_file = GtfsFile::new(&path).unwrap();
     let stops: Vec<Stops> = Stops::from_gtfs_file(&mut gtfs_file);
 
