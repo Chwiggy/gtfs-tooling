@@ -12,6 +12,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     Echo(EchoArgs),
+    GeoJson(GeoJsonArgs)
 }
 
 #[derive(Args)]
@@ -21,6 +22,17 @@ struct EchoArgs {
     #[command(subcommand)]
     file: StandardFiles,
 }
+
+#[derive(Args)]
+struct GeoJsonArgs {
+    input: std::path::PathBuf,
+    
+    #[command(subcommand)]
+    file: StandardFiles,
+
+    output: std::path::PathBuf
+}
+
 
 #[derive(Subcommand)]
 enum StandardFiles {
@@ -48,6 +60,18 @@ fn main() {
                 },
             } 
         },
+        Commands::GeoJson(args) => {
+            let gtfs_path = args.input;
+            match args.file {
+                StandardFiles::Stops => {
+                    let json = functions::simple_stops_json(gtfs_path);
+                    std::fs::write(args.output, json).expect("Unable to write file");
+                },
+                _ => {
+                    println!("Not implemented yet")
+                }
+            }
+        }
     }
     
 }
