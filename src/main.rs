@@ -44,7 +44,7 @@ fn main() {
                     functions::calendar_dates_out(gtfs_path)
                 },
                 StandardFiles::Stops => {
-                    panic!()
+                    functions::stops_out(gtfs_path)
                 },
             } 
         },

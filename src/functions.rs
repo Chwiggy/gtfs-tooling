@@ -17,11 +17,15 @@ pub fn file_list(gtfs_path: std::path::PathBuf) {
     println!("GTFS archive contains: {:?}", file_list);
 }
 
-pub fn calendar_dates_out(gtfs_path: std::path::PathBuf) {
-    let mut gtfs_file = load_gtfs_file(gtfs_path);
-               
-    // let agencies: Vec<Agency> = Agency::from_gtfs_file(&mut gtfs_file);
+pub fn stops_out(gtfs_path: std::path::PathBuf) {
+    let mut gtfs_file = load_gtfs_file(gtfs_path);  
     
+    let stop: Vec<gtfs::Stops> = gtfs::Stops::from_gtfs_file(&mut gtfs_file);
+    println!("{:?}",stop)
+}
+
+pub fn calendar_dates_out(gtfs_path: std::path::PathBuf) {
+    let mut gtfs_file = load_gtfs_file(gtfs_path);  
     
     let stop: Vec<gtfs::CalendarDates> = gtfs::CalendarDates::from_gtfs_file(&mut gtfs_file);
     println!("{:?}",stop)
