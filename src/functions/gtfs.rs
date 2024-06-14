@@ -20,7 +20,7 @@ pub struct GtfsFile {
 
 impl GtfsFile {
     pub fn new(filepath: &PathBuf) -> Result<Self, GtfsSpecError> {
-        let reader: File = std::fs::File::open(filepath).unwrap();
+        let reader: File = std::fs::File::open(filepath).expect("unable to read file");
         let archive: ZipArchive<File> = ZipArchive::new(reader).unwrap();
         let mut gtfs_candidate = GtfsFile { archive };
         match gtfs_candidate.check_file_validity() {
