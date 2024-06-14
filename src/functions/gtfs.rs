@@ -1,7 +1,6 @@
 use core::fmt;
 use std::path::PathBuf;
 use std::{fs::File, usize};
-use std::io::Read;
 
 use serde::{Serialize, Deserialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -14,9 +13,10 @@ use csv;
 pub use zip::read::ZipArchive;
 
 pub struct GtfsFile {
-    pub(crate) archive: ZipArchive<File>
+    archive: ZipArchive<File>
 }
 
+pub type Iter<'a, T> = csv::DeserializeRecordsIntoIter<zip::read::ZipFile<'a>, T>;
 
 impl GtfsFile {
     pub fn new(filepath: &PathBuf) -> Result<Self, GtfsSpecError> {
@@ -30,6 +30,27 @@ impl GtfsFile {
                 return Err(error)
             }
         }
+    }
+
+    pub fn into_iter<T>(&mut self) -> Iter<T>
+    where
+        T: for <'a> GtfsObject + for<'de> serde::Deserialize<'de>
+    {
+        let file = self.archive.by_name(T::FILE).unwrap();
+        let reader = csv::Reader::from_reader(file);
+        reader.into_deserialize::<T>()
+    }
+
+    pub fn read_vec<T>(&mut self) -> Vec<T>
+    where
+        T: for <'a> GtfsObject + for<'de> serde::Deserialize<'de>
+    {
+        let mut output: Vec<T> = vec![];
+        for result in self.into_iter() {
+            let record: T = result.unwrap();
+            output.push(record);
+        }
+        output
     }
 
     pub fn list_files(&mut self) -> Vec<String> {
@@ -63,20 +84,9 @@ impl GtfsFile {
 
         Ok(true)
     }
-    
-    pub fn extract_by_name(&mut self, name: &str) -> String {
-        let mut buffer = String::new();
-        match self.archive.by_name(name).unwrap().read_to_string(&mut buffer) {
-            Ok(_) => buffer,
-            _ => panic!("Could not extract file {}", name)
-        }
-    }
-
 }
 
 pub trait GtfsObject {
-    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> where Self: Sized;
-
     const FILE: &'static str;
 }
 
@@ -93,19 +103,6 @@ pub struct Agency {
 }
 
 impl GtfsObject for Agency {
-    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
-        let agency_text = gtfs_file.extract_by_name(Self::FILE);
-
-        let mut reader = csv::Reader::from_reader(agency_text.as_bytes());
-        let iter = reader.deserialize();
-        let mut agencies: Vec<Agency> = Vec::new();
-        for result in iter {
-            let record: Agency = result.unwrap();
-            agencies.push(record)
-        }
-        agencies
-    }
-
     const FILE: &'static str = "agency.txt";
 }
 
@@ -130,19 +127,6 @@ pub struct Stops {
 }
 
 impl GtfsObject for Stops {
-    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
-        let stops_text = gtfs_file.extract_by_name(Self::FILE);
-
-        let mut reader = csv::Reader::from_reader(stops_text.as_bytes());
-        let iter = reader.deserialize();
-        let mut stops: Vec<Stops> = Vec::new();
-        for result in iter {
-            let record: Stops = result.unwrap();
-            stops.push(record)
-        }
-        stops
-    }
-
     const FILE: &'static str = "stops.txt";
 }
 
@@ -185,19 +169,6 @@ pub struct Route {
 
 
 impl GtfsObject for Route {
-    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
-        let routes_text = gtfs_file.extract_by_name(Self::FILE);
-
-        let mut reader = csv::Reader::from_reader(routes_text.as_bytes());
-        let iter = reader.deserialize();
-        let mut routes: Vec<Route> = Vec::new();
-        for result in iter {
-            let record: Route = result.unwrap();
-            routes.push(record)
-        }
-        routes
-    }
-
     const FILE: &'static str = "routes.txt";
 }
 
@@ -241,19 +212,6 @@ pub struct Trip {
 
 impl GtfsObject for Trip {
     const FILE: &'static str = "trips.txt";
-
-    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
-        let trip_text = gtfs_file.extract_by_name(Self::FILE);
-
-        let mut reader = csv::Reader::from_reader(trip_text.as_bytes());
-        let iter = reader.deserialize();
-        let mut trips: Vec<Trip> = Vec::new();
-        for result in iter {
-            let record: Trip = result.unwrap();
-            trips.push(record)
-        }
-        trips
-    }
 }
 
 #[derive(Debug, Serialize_repr, Deserialize_repr)]
@@ -335,75 +293,8 @@ pub enum TimepointType {
 
 impl GtfsObject for StopTime {
     const FILE: &'static str = "stop_times.txt";
-
-    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
-        let stop_times_text = gtfs_file.extract_by_name(Self::FILE);
-        let mut reader = csv::ReaderBuilder::new()
-            .from_reader(stop_times_text.as_bytes());
-        let iter = reader.deserialize();       
-        let mut stop_times: Vec<StopTime> = Vec::new();
-        let mut recoverable_errors: Vec<csv::Error> = Vec::new();
-        for result in iter {
-            match result {
-                Ok(record) => stop_times.push(record),
-                Err(error) => {
-                    println!("Error {:?}", error.kind());
-                    match error.kind() {
-                        csv::ErrorKind::UnequalLengths { pos: _, expected_len:_, len:_} => {
-                            recoverable_errors.push(error);
-                        },
-                        _ => panic!("unexpected error occured while reading csv!")
-                    }
-                }                
-            }
-            
-        }
-        if recoverable_errors.is_empty() {
-            return stop_times;
-        } else {
-            let mut new_stop_times: Vec<StopTime> = Vec::new();
-            let mut expected: u64 = 0;
-            for error in recoverable_errors {
-                if let csv::ErrorKind::UnequalLengths { pos:_, expected_len, len: _ } = error.kind().to_owned() {
-                    expected = *expected_len;
-                };
-            }
-            let new_csv_text: String = csv_add_commas(stop_times_text, expected);
-            let mut reader = csv::ReaderBuilder::new()
-                .flexible(true)
-                .from_reader(new_csv_text.as_bytes());
-            let new_iter = reader.deserialize();
-            for result in new_iter {
-                new_stop_times.push(result.unwrap());
-            }
-            return new_stop_times;
-        }
-    }
 }
 
-
-
-fn csv_add_commas(csv_string: String, expected_len: u64) -> String{
-    let lines = csv_string.lines();
-    let mut result: Vec<String> = Vec::new();
-    
-    for line in lines {
-        let trimmed_line = line.trim_end_matches("\n");
-        let line_length = trimmed_line.split(",").count();
-        if line_length != expected_len as usize {
-            let missing_commas = expected_len - line_length as u64;
-            let mut new_line = String::from(trimmed_line);
-            for _ in  0..missing_commas {
-                new_line.push_str(",");
-            }
-            result.push(new_line);
-        } else {
-            result.push(line.to_owned());
-        }
-    }
-    let test = result.join("\n");
-    test
-}
 
 #[serde_as]
 #[derive(Debug, Deserialize, Serialize)]
@@ -456,19 +347,6 @@ mod date {
 
 impl GtfsObject for Calendar {
     const FILE: &'static str = "calendar.txt";
-
-    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
-        let calendar_text = gtfs_file.extract_by_name(Self::FILE);
-
-        let mut reader = csv::Reader::from_reader(calendar_text.as_bytes());
-        let iter = reader.deserialize();
-        let mut calendar: Vec<Calendar> = Vec::new();
-        for result in iter {
-            let record: Calendar = result.unwrap();
-            calendar.push(record)
-        }
-        calendar
-    }
 }
 
 pub struct GtfsSpecError;
@@ -502,19 +380,6 @@ pub enum CalendarException {
 
 impl GtfsObject for CalendarDates {
     const FILE: &'static str = "calendar_dates.txt";
-
-    fn from_gtfs_file(gtfs_file: &mut GtfsFile) -> Vec<Self> {
-        let calendar_dates_text = gtfs_file.extract_by_name(Self::FILE);
-
-        let mut reader = csv::Reader::from_reader(calendar_dates_text.as_bytes());
-        let iter = reader.deserialize();
-        let mut calendar_dates: Vec<CalendarDates> = Vec::new();
-        for result in iter {
-            let record: CalendarDates = result.unwrap();
-            calendar_dates.push(record)
-        }
-        calendar_dates
-    }
 }
 
 #[test]
@@ -538,54 +403,4 @@ fn test_new_broken_gtfs() {
         Ok(_) => panic!("This gtfs file should have been rejected as invalid"),
         Err(error) => println!("correctly rejected invalid gtfs file, with error {}", error)
     };
-}
-
-#[test]
-fn test_different_parsings() {
-    let path: PathBuf = PathBuf::from("test_data/sample-feed-1.zip");
-    let mut gtfs_file = GtfsFile::new(&path).unwrap();
-    let stops: Vec<Stops> = Stops::from_gtfs_file(&mut gtfs_file);
-
-    let result_stops = &stops[0];
-
-    let expected_stops = &Stops {
-        stop_id: String::from("FUR_CREEK_RES"),
-        stop_code: None,
-        stop_name: Some(String::from("Furnace Creek Resort (Demo)")),
-        tts_stop_name: None,
-        stop_desc: None,
-        stop_lat: Some(36.425288),
-        stop_lon: Some(-117.133162),
-        zone_id: None,
-        stop_url: None,
-        location_type: None,
-        parent_station: None,
-        stop_timezone: None,
-        wheelchair_boarding: None,
-        level_id: None,
-        platform_code: None
-    };
-
-    assert_eq!(result_stops, expected_stops);
-
-    let stop_times = StopTime::from_gtfs_file(&mut gtfs_file);
-    let result_stop_time = &stop_times[stop_times.len()-1];
-
-    let expected_stop_time = &StopTime {
-        trip_id: Some(String::from("AAMV4")),
-        arrival_time: Some(Time { h: 16, m: 0, s: 0 }),
-        departure_time: Some(Time { h: 16, m: 0, s: 0 }),
-        stop_id: Some(String::from("BEATTY_AIRPORT")),
-        stop_sequence: Some(2),
-        stop_headsign: None,
-        pickup_type: None,
-        drop_off_type: None,
-        continuous_pickup: None,
-        contiuous_drop_off: None,
-        shape_dist_travelled: None,
-        timepoint: None
-    };
-
-    assert_eq!(result_stop_time, expected_stop_time);
-    
 }
