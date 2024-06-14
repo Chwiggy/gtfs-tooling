@@ -1,8 +1,8 @@
 use serde::Serialize;
 
-use super::gtfs::{Stops, LocationType, WheelchairAccessibility};
+use super::gtfs::{LocationType, Stops, WheelchairAccessibility};
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, PartialEq)]
 pub struct StopsJson {
     pub id: String,
     pub stop_code: Option<String>,
@@ -57,4 +57,45 @@ pub fn from_stop(stop: Stops) -> Option<StopsJson> {
         None
     }
 
+}
+
+#[test]
+fn test_from_stop() {
+    let stop = Stops{
+        stop_id: String::from("test"),
+        stop_code: None,
+        stop_name: Some(String::from("test")),
+        tts_stop_name: None,
+        stop_desc: None,
+        stop_lat: Some(8.0),
+        stop_lon: Some(48.23),
+        zone_id: None,
+        stop_url: None,
+        location_type: Some(LocationType::Station),
+        parent_station: Some(String::from("Test")),
+        stop_timezone: None,
+        wheelchair_boarding: Some(WheelchairAccessibility::Unknown),
+        level_id: None,
+        platform_code: None
+    };
+
+    let expected_stop = StopsJson{
+        id: String::from("test"),
+        stop_code: None,
+        stop_name: Some(String::from("test")),
+        tts_stop_name: None,
+        stop_desc: None,
+        geometry: geo_types::Point::new(48.23,8.0),
+        zone_id: None,
+        stop_url: None,
+        location_type: Some(LocationType::Station),
+        parent_station: Some(String::from("Test")),
+        stop_timezone: None,
+        wheelchair_boarding: None,
+        level_id: None,
+        platform_code: None
+    };
+
+    let result = from_stop(stop).unwrap();
+    assert_eq!(result, expected_stop)
 }
