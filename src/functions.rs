@@ -65,6 +65,15 @@ pub fn stop_times_out(gtfs_path: std::path::PathBuf) {
     } 
 }
 
+pub fn calendar_out(gtfs_path: std::path::PathBuf) {
+    let mut gtfs_file = load_gtfs_file(gtfs_path);  
+    
+    let calendar: gtfs::Iter<gtfs::Calendar> = gtfs_file.into_iter();
+    for calendar_entry in calendar {
+        println!("{:?}", calendar_entry.unwrap())
+    }
+}
+
 pub fn calendar_dates_out(gtfs_path: std::path::PathBuf) {
     let mut gtfs_file = load_gtfs_file(gtfs_path);  
     
