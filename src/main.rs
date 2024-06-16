@@ -45,7 +45,8 @@ enum StandardFiles {
     Calendar,
     CalendarDates,
     FareAttributes,
-    FareRules
+    FareRules,
+    Timeframes
 }
 
 fn main() {
@@ -85,6 +86,9 @@ fn main() {
                 },
                 StandardFiles::FareRules => {
                     functions::fare_rules_out(gtfs_path)
+                },
+                StandardFiles::Timeframes => {
+                    functions::timeframes_out(gtfs_path)
                 }
             } 
         },

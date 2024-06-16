@@ -123,6 +123,15 @@ pub fn fare_rules_out(gtfs_path: std::path::PathBuf) {
     }
 }
 
+pub fn timeframes_out(gtfs_path: std::path::PathBuf) {
+    let mut gtfs_file = load_gtfs_file(gtfs_path);  
+    
+    let timeframes: gtfs::Iter<gtfs::Timeframe> = gtfs_file.into_iter();
+    for timeframe in timeframes {
+        println!("{:?}", timeframe.unwrap())
+    }
+}
+
 pub fn simple_stops_json(gtfs_path: std::path::PathBuf) -> String {
     let mut gtfs_file = load_gtfs_file(gtfs_path);
 

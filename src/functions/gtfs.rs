@@ -315,6 +315,8 @@ pub struct StopTime {
     pub timepoint: Option<TimepointType>,
 }
 
+// TODO figure out how to account for different time semantics in stop_times and timeframes
+
 #[derive(Debug, PartialEq)]
 #[repr(C)]
 pub struct Time {
@@ -502,6 +504,20 @@ impl GtfsObject for FareRule {
     const FILE: &'static str = "fare_rules.txt";
     const REQUIRED: bool = false;
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Timeframe {
+    pub timeframe_group_id: String,
+    pub start_time: Option<Time>,
+    pub end_time: Option<Time>,
+    pub service_id: String,
+}
+
+impl GtfsObject for Timeframe {
+    const FILE: &'static str = "timeframes.txt";
+    const REQUIRED: bool = false;
+}
+
 
 #[test]
 fn test_new_gtfsfile_loading() {
