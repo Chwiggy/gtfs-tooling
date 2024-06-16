@@ -20,6 +20,15 @@ pub fn file_list(gtfs_path: std::path::PathBuf) {
     println!("GTFS archive contains: {:?}", file_list);
 }
 
+pub fn agency_out(gtfs_path: std::path::PathBuf) {
+    let mut gtfs_file = load_gtfs_file(gtfs_path);  
+
+    let agencies: gtfs::Iter<gtfs::Agency> = gtfs_file.into_iter();
+    for agency in agencies {
+        println!("{:?}", agency.unwrap())
+    }
+}
+
 pub fn stops_out(gtfs_path: std::path::PathBuf) {
     let mut gtfs_file = load_gtfs_file(gtfs_path);  
 
@@ -27,6 +36,15 @@ pub fn stops_out(gtfs_path: std::path::PathBuf) {
     for stop in stops {
         println!("{:?}", stop.unwrap())
     }
+}
+
+pub fn routes_out(gtfs_path: std::path::PathBuf) {
+    let mut gtfs_file = load_gtfs_file(gtfs_path);  
+
+    let routes: gtfs::Iter<gtfs::Route> = gtfs_file.into_iter();
+    for route in routes {
+        println!("{:?}", route.unwrap())
+    } 
 }
 
 pub fn calendar_dates_out(gtfs_path: std::path::PathBuf) {
@@ -42,8 +60,8 @@ pub fn fare_attributes_out(gtfs_path: std::path::PathBuf) {
     let mut gtfs_file = load_gtfs_file(gtfs_path);  
     
     let fare_attributes: gtfs::Iter<gtfs::FareAttributes> = gtfs_file.into_iter();
-    for calendar_date in fare_attributes {
-        match calendar_date {
+    for fare_attribute in fare_attributes {
+        match fare_attribute {
             Ok(result) => println!("{:?}", result),
             Err(error) => println!("{}", error)
         }

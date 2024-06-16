@@ -37,8 +37,10 @@ struct GeoJsonArgs {
 #[derive(Subcommand)]
 enum StandardFiles {
     Files,
-    CalendarDates,
+    Agencies,
     Stops,
+    Routes,
+    CalendarDates,
     FareAttributes
 }
 
@@ -53,15 +55,23 @@ fn main() {
                 StandardFiles::Files => {
                     functions::file_list(gtfs_path)
                 },
-                StandardFiles::CalendarDates => {
-                    functions::calendar_dates_out(gtfs_path)
+                StandardFiles::Agencies => {
+                    functions::agency_out(gtfs_path)
                 },
                 StandardFiles::Stops => {
                     functions::stops_out(gtfs_path)
                 },
+                StandardFiles::Routes => {
+                    functions::routes_out(gtfs_path)
+                }
+
+                StandardFiles::CalendarDates => {
+                    functions::calendar_dates_out(gtfs_path)
+                },
                 StandardFiles::FareAttributes => {
                     functions::fare_attributes_out(gtfs_path)
-                }
+                },
+                
             } 
         },
         Commands::GeoJson(args) => {
