@@ -1,6 +1,7 @@
 mod gtfs;
 mod geodata;
 use geojson::ser;
+use serde::de::value::Error;
 use crate::functions::geodata::from_stop;
 
 
@@ -61,7 +62,26 @@ pub fn stop_times_out(gtfs_path: std::path::PathBuf) {
 
     let stop_times: gtfs::Iter<gtfs::StopTime> = gtfs_file.into_iter();
     for stop_time in stop_times {
-        println!("{:?}", stop_time.unwrap())
+        match stop_time {
+            Ok(result) => println!("{:?}", result),
+            Err(e) => {
+                match e.kind() {
+                    csv::ErrorKind::UnequalLengths { pos, ..} => {
+                        if let Some(position) = pos {
+                            if position.record() == 16 {
+                                println!("You seem to be using the Sample GTFS feed. Yes it's broken: {}", e)
+                            } else {
+                                println!("{}", e)
+                            }
+                        } else {
+                            println!("{}", e)
+                        }
+                    },
+                    _ => println!("{}", e)
+                }
+            }
+            
+        }
     } 
 }
 
