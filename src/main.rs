@@ -48,6 +48,7 @@ enum StandardFiles {
     FareRules,
     Timeframes,
     FareMedia,
+    FareProducts,
 }
 
 fn main() {
@@ -93,6 +94,9 @@ fn main() {
                 },
                 StandardFiles::FareMedia => {
                     functions::fare_media_out(gtfs_path)
+                }
+                StandardFiles::FareProducts => {
+                    functions::fare_products_out(gtfs_path)
                 }
             } 
         },

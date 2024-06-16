@@ -141,6 +141,15 @@ pub fn fare_media_out(gtfs_path: std::path::PathBuf) {
     }
 }
 
+pub fn fare_products_out(gtfs_path: std::path::PathBuf) {
+    let mut gtfs_file = load_gtfs_file(gtfs_path);  
+    
+    let fare_products: gtfs::Iter<gtfs::FareProduct> = gtfs_file.into_iter();
+    for fare_product in fare_products {
+        println!("{:?}", fare_product.unwrap())
+    }
+}
+
 pub fn simple_stops_json(gtfs_path: std::path::PathBuf) -> String {
     let mut gtfs_file = load_gtfs_file(gtfs_path);
 
