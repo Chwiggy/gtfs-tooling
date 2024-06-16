@@ -519,6 +519,29 @@ impl GtfsObject for Timeframe {
 }
 
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct FareMedium {
+    pub fare_media_id: String,
+    pub fare_media_name: Option<String>,
+    pub fare_media_type: FareMediaType,
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum FareMediaType {
+    None = 0,
+    Paper = 1,
+    Card = 2,
+    Cemv = 3,
+    App = 4,
+}
+
+impl GtfsObject for FareMedium {
+    const FILE: &'static str = "fare-media.txt";
+    const REQUIRED: bool = false;
+}
+
+
 #[test]
 fn test_new_gtfsfile_loading() {
     let expected_data: Vec<&str> = vec!["agency.txt", "calendar.txt", "calendar_dates.txt", "fare_attributes.txt", "fare_rules.txt", "frequencies.txt", "routes.txt", "shapes.txt", "stop_times.txt", "stops.txt", "trips.txt"];
