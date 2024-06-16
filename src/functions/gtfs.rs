@@ -183,9 +183,16 @@ impl GtfsObject for Route {
     const REQUIRED: bool = true;
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RouteType {
+    Standard(StandardRouteType),
+    HVT(HVTRouteType)
+}
+
 #[derive(Debug, Serialize_repr, Deserialize_repr)]
 #[repr(u8)]
-pub enum RouteType {
+pub enum StandardRouteType {
     Tram = 0,
     Metro = 1,
     Rail = 2,
@@ -194,8 +201,52 @@ pub enum RouteType {
     CableTram = 5,
     AerialLift = 6,
     Funicular = 7,
-    Trolleybus = 11,
+    TrolleyBus = 11,
     Monorail = 12,
+}
+
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u16)]
+pub enum HVTRouteType {    
+    /*
+    The following route types are an extension ba-ed on Hierarchical Vehicle Types
+    see https://developers.google.com/transit/gtfs/reference/extended-route-types
+    Excluding the unsupported ones
+    */
+    Rail = 100,
+    HighSpeedRail = 101,
+    LongDistanceRail = 102,
+    InterRegionalRail = 103,
+    SleeperRail = 105,
+    RegionalRail = 106,
+    TouristRail = 107,
+    RailShuttle = 108,
+    SuburbanRail = 109,
+    Coach = 200,
+    IntrenationalCoach = 201,
+    NationalCoach = 202,
+    RegionalCoach = 204,
+    UrbanRail0 = 400,
+    Metro = 401,
+    UndergroundRail = 402,
+    UrbanRail1 = 403,
+    MonoRail = 405,
+    Bus = 700,
+    RegionalBus = 701,
+    ExpressBus = 702,
+    LocalBus = 704,
+    DemandResponseBus = 715,
+    TrolleyBus = 800,
+    Tram = 900,
+    WaterTransport = 1000,
+    Ferry = 1200,
+    AerialLift = 1300,
+    Telecabin = 1301,
+    Funicular = 1400,
+    CommunalTaxi = 1501,
+    Miscellaneous = 1700,
+    HorseDrawnCarriage = 1702
 }
 
 #[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
