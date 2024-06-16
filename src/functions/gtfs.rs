@@ -37,14 +37,13 @@ impl GtfsFile {
         T: for <'a> GtfsObject + for<'de> serde::Deserialize<'de>
     {
         let file_result = self.archive.by_name(T::FILE);
-        match file_result {
-            Ok(file) => {
-                let reader = csv::Reader::from_reader(file);
-                reader.into_deserialize::<T>()
-            },
-            Err(error) => {
-                panic!("Error: {}. Note that some files may be optional", error)
-            }
+        if let Ok(file) = file_result {
+            let reader = csv::Reader::from_reader(file);
+            reader.into_deserialize::<T>()
+        } else if !T::REQUIRED {
+            panic!("The file requested is optional and missing")
+        } else {
+            panic!("A required file seems to be missing")
         }
 
     }
@@ -96,6 +95,7 @@ impl GtfsFile {
 
 pub trait GtfsObject {
     const FILE: &'static str;
+    const REQUIRED: bool;
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -112,6 +112,7 @@ pub struct Agency {
 
 impl GtfsObject for Agency {
     const FILE: &'static str = "agency.txt";
+    const REQUIRED: bool = true;
 }
 
 
@@ -136,6 +137,7 @@ pub struct Stops {
 
 impl GtfsObject for Stops {
     const FILE: &'static str = "stops.txt";
+    const REQUIRED: bool = true;
 }
 
 #[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
@@ -178,6 +180,7 @@ pub struct Route {
 
 impl GtfsObject for Route {
     const FILE: &'static str = "routes.txt";
+    const REQUIRED: bool = true;
 }
 
 #[derive(Debug, Serialize_repr, Deserialize_repr)]
@@ -220,6 +223,7 @@ pub struct Trip {
 
 impl GtfsObject for Trip {
     const FILE: &'static str = "trips.txt";
+    const REQUIRED: bool = true;
 }
 
 #[derive(Debug, Serialize_repr, Deserialize_repr)]
@@ -301,6 +305,7 @@ pub enum TimepointType {
 
 impl GtfsObject for StopTime {
     const FILE: &'static str = "stop_times.txt";
+    const REQUIRED: bool = true;
 }
 
 
@@ -355,6 +360,7 @@ mod date {
 
 impl GtfsObject for Calendar {
     const FILE: &'static str = "calendar.txt";
+    const REQUIRED: bool = false;
 }
 
 pub struct GtfsSpecError;
@@ -388,6 +394,7 @@ pub enum CalendarException {
 
 impl GtfsObject for CalendarDates {
     const FILE: &'static str = "calendar_dates.txt";
+    const REQUIRED: bool = false;
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -421,6 +428,7 @@ pub enum TransferCount {
 
 impl GtfsObject for FareAttributes {
     const FILE: &'static str = "fare_attributes.txt";
+    const REQUIRED: bool = false;
 }
 
 #[test]
