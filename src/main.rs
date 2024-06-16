@@ -58,53 +58,57 @@ fn main() {
     match args.command {
         Commands::Echo(args) => {
             let gtfs_path = args.input;
+            let mut gtfs_file = functions::load_gtfs_file(gtfs_path);
+            
             match args.file {
                 StandardFiles::Files => {
-                    functions::file_list(gtfs_path)
+                    functions::file_list(&mut gtfs_file)
                 },
                 StandardFiles::Agencies => {
-                    functions::agency_out(gtfs_path)
+                    functions::agency_out(&mut gtfs_file)
                 },
                 StandardFiles::Stops => {
-                    functions::stops_out(gtfs_path)
+                    functions::stops_out(&mut gtfs_file)
                 },
                 StandardFiles::Routes => {
-                    functions::routes_out(gtfs_path)
+                    functions::routes_out(&mut gtfs_file)
                 },
                 StandardFiles::Trips => {
-                    functions::trips_out(gtfs_path)
+                    functions::trips_out(&mut gtfs_file)
                 },
                 StandardFiles::StopTimes => {
-                    functions::stop_times_out(gtfs_path)
+                    functions::stop_times_out(&mut gtfs_file)
                 },
                 StandardFiles::Calendar => {
-                    functions::calendar_out(gtfs_path)
+                    functions::calendar_out(&mut gtfs_file)
                 },
                 StandardFiles::CalendarDates => {
-                    functions::calendar_dates_out(gtfs_path)
+                    functions::calendar_dates_out(&mut gtfs_file)
                 },
                 StandardFiles::FareAttributes => {
-                    functions::fare_attributes_out(gtfs_path)
+                    functions::fare_attributes_out(&mut gtfs_file)
                 },
                 StandardFiles::FareRules => {
-                    functions::fare_rules_out(gtfs_path)
+                    functions::fare_rules_out(&mut gtfs_file)
                 },
                 StandardFiles::Timeframes => {
-                    functions::timeframes_out(gtfs_path)
+                    functions::timeframes_out(&mut gtfs_file)
                 },
                 StandardFiles::FareMedia => {
-                    functions::fare_media_out(gtfs_path)
+                    functions::fare_media_out(&mut gtfs_file)
                 }
                 StandardFiles::FareProducts => {
-                    functions::fare_products_out(gtfs_path)
+                    functions::fare_products_out(&mut gtfs_file)
                 }
             } 
         },
         Commands::GeoJson(args) => {
             let gtfs_path = args.input;
+            let mut gtfs_file = functions::load_gtfs_file(gtfs_path);
+
             match args.file {
                 StandardFiles::Stops => {
-                    let json = functions::simple_stops_json(gtfs_path);
+                    let json = functions::simple_stops_json(&mut gtfs_file);
                     std::fs::write(args.output, json).expect("Unable to write file");
                 },
                 _ => {
