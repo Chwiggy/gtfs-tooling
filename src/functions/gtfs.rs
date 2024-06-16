@@ -11,6 +11,7 @@ use chrono::NaiveDate;
 use csv;
 
 pub use zip::read::ZipArchive;
+use zip::result::ZipError;
 
 pub struct GtfsFile {
     archive: ZipArchive<File>
@@ -37,13 +38,19 @@ impl GtfsFile {
         T: for <'a> GtfsObject + for<'de> serde::Deserialize<'de>
     {
         let file_result = self.archive.by_name(T::FILE);
-        if let Ok(file) = file_result {
-            let reader = csv::Reader::from_reader(file);
-            reader.into_deserialize::<T>()
-        } else if !T::REQUIRED {
-            panic!("The file requested is optional and missing")
-        } else {
-            panic!("A required file seems to be missing")
+        match file_result {
+            Ok(file) => {
+                let reader = csv::Reader::from_reader(file);
+                reader.into_deserialize::<T>()
+            },
+            Err(ZipError::FileNotFound) => {
+                if !T::REQUIRED {
+                    panic!("The file requested is optional and missing")
+                } else {
+                    panic!("A required file seems to be missing")
+                }
+            },
+            Err(error) => panic!("{}", error)
         }
 
     }
