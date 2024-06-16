@@ -56,6 +56,15 @@ pub fn trips_out(gtfs_path: std::path::PathBuf) {
     } 
 }
 
+pub fn stop_times_out(gtfs_path: std::path::PathBuf) {
+    let mut gtfs_file = load_gtfs_file(gtfs_path);  
+
+    let stop_times: gtfs::Iter<gtfs::StopTime> = gtfs_file.into_iter();
+    for stop_time in stop_times {
+        println!("{:?}", stop_time.unwrap())
+    } 
+}
+
 pub fn calendar_dates_out(gtfs_path: std::path::PathBuf) {
     let mut gtfs_file = load_gtfs_file(gtfs_path);  
     

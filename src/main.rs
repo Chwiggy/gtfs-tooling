@@ -41,6 +41,7 @@ enum StandardFiles {
     Stops,
     Routes,
     Trips,
+    StopTimes,
     CalendarDates,
     FareAttributes
 }
@@ -68,6 +69,9 @@ fn main() {
                 StandardFiles::Trips => {
                     functions::trips_out(gtfs_path)
                 },
+                StandardFiles::StopTimes => {
+                    functions::stop_times_out(gtfs_path)
+                }
 
                 StandardFiles::CalendarDates => {
                     functions::calendar_dates_out(gtfs_path)
