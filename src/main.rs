@@ -39,6 +39,7 @@ enum StandardFiles {
     Files,
     CalendarDates,
     Stops,
+    FareAttributes
 }
 
 fn main() {
@@ -58,6 +59,9 @@ fn main() {
                 StandardFiles::Stops => {
                     functions::stops_out(gtfs_path)
                 },
+                StandardFiles::FareAttributes => {
+                    functions::fare_attributes_out(gtfs_path)
+                }
             } 
         },
         Commands::GeoJson(args) => {

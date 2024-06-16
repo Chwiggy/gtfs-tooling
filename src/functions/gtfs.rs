@@ -1,4 +1,4 @@
-use core::fmt;
+use core::{fmt, panic};
 use std::path::PathBuf;
 use std::{fs::File, usize};
 
@@ -36,9 +36,17 @@ impl GtfsFile {
     where
         T: for <'a> GtfsObject + for<'de> serde::Deserialize<'de>
     {
-        let file = self.archive.by_name(T::FILE).unwrap();
-        let reader = csv::Reader::from_reader(file);
-        reader.into_deserialize::<T>()
+        let file_result = self.archive.by_name(T::FILE);
+        match file_result {
+            Ok(file) => {
+                let reader = csv::Reader::from_reader(file);
+                reader.into_deserialize::<T>()
+            },
+            Err(error) => {
+                panic!("Error: {}. Note that some files may be optional", error)
+            }
+        }
+
     }
 
     pub fn read_vec<T>(&mut self) -> Vec<T>
@@ -380,6 +388,39 @@ pub enum CalendarException {
 
 impl GtfsObject for CalendarDates {
     const FILE: &'static str = "calendar_dates.txt";
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct FareAttributes {
+    pub fare_id: String,
+    pub price: f64,
+    pub currency_type: String,
+    pub payment_method: PaymentMethod,
+    // This being a none implies unlimited transfers, not none
+    pub transfers: Option<TransferCount>,
+    pub agency_id: Option<String>,
+    pub transfer_duration: Option<u64>
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum PaymentMethod {
+    // To accommodate the sample gtfs feed, this enum include a meaningless zero
+    WhatEverTheFuck = 0,
+    OnBoard = 1,
+    BeforeBoarding = 2,
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum TransferCount {
+    None = 0,
+    One = 1,
+    Two = 2,
+}
+
+impl GtfsObject for FareAttributes {
+    const FILE: &'static str = "fare_attributes.txt";
 }
 
 #[test]

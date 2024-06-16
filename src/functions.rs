@@ -38,6 +38,18 @@ pub fn calendar_dates_out(gtfs_path: std::path::PathBuf) {
     }
 }
 
+pub fn fare_attributes_out(gtfs_path: std::path::PathBuf) {
+    let mut gtfs_file = load_gtfs_file(gtfs_path);  
+    
+    let fare_attributes: gtfs::Iter<gtfs::FareAttributes> = gtfs_file.into_iter();
+    for calendar_date in fare_attributes {
+        match calendar_date {
+            Ok(result) => println!("{:?}", result),
+            Err(error) => println!("{}", error)
+        }
+    }
+}
+
 pub fn simple_stops_json(gtfs_path: std::path::PathBuf) -> String {
     let mut gtfs_file = load_gtfs_file(gtfs_path);
 
