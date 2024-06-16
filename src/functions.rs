@@ -1,7 +1,6 @@
 mod gtfs;
 mod geodata;
 use geojson::ser;
-use serde::de::value::Error;
 use crate::functions::geodata::from_stop;
 
 
@@ -112,6 +111,15 @@ pub fn fare_attributes_out(gtfs_path: std::path::PathBuf) {
             Ok(result) => println!("{:?}", result),
             Err(error) => println!("{}", error)
         }
+    }
+}
+
+pub fn fare_rules_out(gtfs_path: std::path::PathBuf) {
+    let mut gtfs_file = load_gtfs_file(gtfs_path);  
+    
+    let fare_rules: gtfs::Iter<gtfs::FareRule> = gtfs_file.into_iter();
+    for fare_rule in fare_rules {
+        println!("{:?}", fare_rule.unwrap())
     }
 }
 

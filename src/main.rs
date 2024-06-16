@@ -44,7 +44,8 @@ enum StandardFiles {
     StopTimes,
     Calendar,
     CalendarDates,
-    FareAttributes
+    FareAttributes,
+    FareRules
 }
 
 fn main() {
@@ -82,7 +83,9 @@ fn main() {
                 StandardFiles::FareAttributes => {
                     functions::fare_attributes_out(gtfs_path)
                 },
-                
+                StandardFiles::FareRules => {
+                    functions::fare_rules_out(gtfs_path)
+                }
             } 
         },
         Commands::GeoJson(args) => {

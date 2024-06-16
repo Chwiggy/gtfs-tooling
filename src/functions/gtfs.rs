@@ -489,6 +489,20 @@ impl GtfsObject for FareAttributes {
     const REQUIRED: bool = false;
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct FareRule {
+    fare_id: String,
+    route_id: Option<String>,
+    origin_id: Option<String>,
+    destination_id: Option<String>,
+    contains_id: Option<String>,
+}
+
+impl GtfsObject for FareRule {
+    const FILE: &'static str = "fare_rules.txt";
+    const REQUIRED: bool = false;
+}
+
 #[test]
 fn test_new_gtfsfile_loading() {
     let expected_data: Vec<&str> = vec!["agency.txt", "calendar.txt", "calendar_dates.txt", "fare_attributes.txt", "fare_rules.txt", "frequencies.txt", "routes.txt", "shapes.txt", "stop_times.txt", "stops.txt", "trips.txt"];
