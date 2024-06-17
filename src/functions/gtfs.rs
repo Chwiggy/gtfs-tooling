@@ -556,6 +556,74 @@ impl GtfsObject for FareProduct {
 }
 
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct FareLegRule {
+    pub leg_group_id: Option<String>,
+    pub network_id: Option<String>,
+    pub from_area_id: Option<String>,
+    pub to_area_id: Option<String>,
+    pub from_timeframe_group_id: Option<String>,
+    pub to_timeframe_group_id: Option<String>,
+    pub fare_product_id: String,
+    pub rule_priority: Option<u64>
+}
+
+impl GtfsObject for FareLegRule {
+    const FILE: &'static str = "fare_leg_rules.txt";
+    const REQUIRED: bool = false;
+}
+
+
+
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct FareTransferRule {
+    pub from_leg_group_id: Option<String>,
+    pub to_leg_group_id: Option<String>,
+    pub transfer_count: Option<i64>,
+    pub duration_limit: Option<u64>,
+    pub duration_limit_type: Option<DurationLimitType>,
+    pub fare_transfer_type: FareTransferType,
+    pub fare_product_id: Option<String>,
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum DurationLimitType {
+    DepartureAndArrival = 0,
+    DepartureAndDeparture = 1,
+    ArrivalAndDeparture = 2,
+    ArrivalAndArrival = 3,
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum FareTransferType {
+    // The fuck does this mean
+    AAB = 0,
+    AABB = 1,
+    AB = 2
+}
+
+impl GtfsObject for FareTransferRule {
+    const FILE: &'static str = "fare_transfer_rules.txt";
+    const REQUIRED: bool = false;
+}
+
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Areas {
+    pub area_id: String,
+    pub area_name: Option<String>,
+}
+
+impl GtfsObject for Areas {
+    const FILE: &'static str = "areas.txt";
+    const REQUIRED: bool = false;
+}
+
+
+
 #[test]
 fn test_new_gtfsfile_loading() {
     let expected_data: Vec<&str> = vec!["agency.txt", "calendar.txt", "calendar_dates.txt", "fare_attributes.txt", "fare_rules.txt", "frequencies.txt", "routes.txt", "shapes.txt", "stop_times.txt", "stops.txt", "trips.txt"];

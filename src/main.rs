@@ -49,6 +49,9 @@ enum StandardFiles {
     Timeframes,
     FareMedia,
     FareProducts,
+    FareLegRules,
+    FareTransferRules,
+    Areas,
 }
 
 fn main() {
@@ -99,6 +102,15 @@ fn main() {
                 }
                 StandardFiles::FareProducts => {
                     functions::fare_products_out(&mut gtfs_file)
+                },
+                StandardFiles::FareLegRules => {
+                    functions::fare_leg_rules_out(&mut gtfs_file)
+                },
+                StandardFiles::FareTransferRules => {
+                    functions::fare_tranfer_rules_out(&mut gtfs_file)
+                },
+                StandardFiles::Areas => {
+                    functions::areas_out(&mut gtfs_file)
                 }
             } 
         },

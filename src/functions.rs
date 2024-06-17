@@ -124,6 +124,27 @@ pub fn fare_products_out(gtfs_file: &mut gtfs::GtfsFile) {
     }
 }
 
+pub fn fare_leg_rules_out(gtfs_file: &mut gtfs::GtfsFile) {
+    let fare_leg_rules: gtfs::Iter<gtfs::FareLegRule> = gtfs_file.into_iter();
+    for fare_leg_rule in fare_leg_rules {
+        println!("{:?}", fare_leg_rule.unwrap())
+    }
+}
+
+pub fn fare_tranfer_rules_out(gtfs_file: &mut gtfs::GtfsFile) {
+    let fare_transfer_rules: gtfs::Iter<gtfs::FareTransferRule> = gtfs_file.into_iter();
+    for fare_transfer_rule in fare_transfer_rules {
+        println!("{:?}", fare_transfer_rule.unwrap())
+    }
+}
+
+pub fn areas_out(gtfs_file: &mut gtfs::GtfsFile) {
+    let areas: gtfs::Iter<gtfs::Areas> = gtfs_file.into_iter();
+    for area in areas {
+        println!("{:?}", area.unwrap())
+    }
+}
+
 pub fn simple_stops_json(gtfs_file: &mut gtfs::GtfsFile) -> String {
     let stops: Vec<gtfs::Stops> = gtfs_file.read_vec();
 
