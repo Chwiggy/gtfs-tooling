@@ -2,7 +2,8 @@ mod gtfs;
 mod geodata;
 use std::collections::HashMap;
 
-use geodata::{GeoShapePoint, StopsJson};
+use geo_types::{geometry, Coord};
+use geodata::{GeoShapeLine, GeoShapePoint, StopsJson};
 use geojson::ser;
 
 
@@ -187,27 +188,48 @@ pub fn simple_stops_json(gtfs_file: &mut gtfs::GtfsFile) -> String {
             None => continue
         }
     }
-    let output_geojson = ser::to_feature_collection_string(&json_stops).unwrap();
+    let output_geojson: String = ser::to_feature_collection_string(&json_stops).unwrap();
     output_geojson
 }
 
-pub fn shapes_json(gtfs_file: &mut gtfs::GtfsFile)  {
+pub fn shapes_json(gtfs_file: &mut gtfs::GtfsFile) -> String  {
     let shapes: Vec<gtfs::Shape> = gtfs_file.read_vec();
-    let mut shapes_map: HashMap<String, Vec<GeoShapePoint>> = HashMap::new();
+    let mut shapes_map: HashMap<String, Vec<Coord<f64>>> = HashMap::new();
 
     for shape in shapes {
         let geoshape: GeoShapePoint = GeoShapePoint::from_shape(shape);
-
-        if !(shapes_map.contains_key(geoshape.shape_id.as_str())) {
-            let key: String = geoshape.shape_id.as_str().to_owned();
-            let mut vec: Vec<GeoShapePoint> = vec![geoshape];
-            shapes_map.insert(key, vec);
+        if let Some(vec) = shapes_map.get_mut(geoshape.shape_id.as_str()) {
+            let coord: Coord<f64> = geoshape.shape_point.into();
+            vec.push(coord);
         } else {
-            if let Some(vec) = shapes_map.get_mut(geoshape.shape_id.as_str()) {
-                    
-            }
+            let key: String = geoshape.shape_id.as_str().to_owned();
+            let coord: Coord<f64> = geoshape.shape_point.into();
+            let vec: Vec<Coord> = vec![coord];
+            shapes_map.insert(key, vec);
         }
+    }
+
+    let mut shape_vec: Vec<GeoShapeLine> = Vec::new();
+    for k in shapes_map {
+        let id: String = k.0;
+        let points: Vec<Coord> =  k.1;
+        let line: geometry::LineString = geo_types::LineString::new(points);
+        let geo_shape_line: GeoShapeLine = GeoShapeLine {
+            shape_id: id,
+            shape_line: line,
+        };
+        shape_vec.push(geo_shape_line);
         
     }
+    println!("{:?}", shape_vec.first().unwrap());
+    let geojson = ser::to_feature_collection_string(&shape_vec);
+    match geojson {
+        Ok(output) => return output,
+        Err(error) => {
+            println!("{:?}", error);
+            return String::new();
+        }
+    }
+
 }
 

@@ -139,6 +139,10 @@ fn main() {
                     let json = functions::simple_stops_json(&mut gtfs_file);
                     std::fs::write(args.output, json).expect("Unable to write file");
                 },
+                StandardFiles::Shapes => {
+                    let json: String = functions::shapes_json(&mut gtfs_file);
+                    std::fs::write(args.output, json).expect("Unable to write file");
+                },
                 _ => {
                     println!("Not implemented yet")
                 }
