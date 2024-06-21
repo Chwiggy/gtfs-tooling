@@ -52,6 +52,10 @@ enum StandardFiles {
     FareLegRules,
     FareTransferRules,
     Areas,
+    StopAreas,
+    Networks,
+    RouteNetworks,
+    Shapes,
 }
 
 fn main() {
@@ -111,6 +115,18 @@ fn main() {
                 },
                 StandardFiles::Areas => {
                     functions::areas_out(&mut gtfs_file)
+                },
+                StandardFiles::StopAreas => {
+                    functions::stop_areas_out(&mut gtfs_file)
+                },
+                StandardFiles::Networks => {
+                    functions::networks_out(&mut gtfs_file)
+                },
+                StandardFiles::RouteNetworks => {
+                    functions::route_networks_out(&mut gtfs_file)
+                },
+                StandardFiles::Shapes => {
+                    functions::shapes_out(&mut gtfs_file)
                 }
             } 
         },

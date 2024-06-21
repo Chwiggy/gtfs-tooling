@@ -622,6 +622,53 @@ impl GtfsObject for Areas {
     const REQUIRED: bool = false;
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct StopArea {
+    pub area_id: String,
+    pub stop_id: String,
+}
+
+impl GtfsObject for StopArea {
+    const FILE: &'static str = "stop_areas.txt";
+    const REQUIRED: bool = false;
+}
+
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Network {
+    pub network_id: String,
+    pub network_name: Option<String>
+}
+
+impl GtfsObject for Network {
+    const FILE: &'static str = "networks.txt";
+    const REQUIRED: bool = false;
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct RouteNetwork {
+    pub network_id: String,
+    pub route_id: String,
+}
+
+impl GtfsObject for RouteNetwork {
+    const FILE: &'static str = "route_networks.txt";
+    const REQUIRED: bool = false;
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Shape {
+    pub shape_id: String,
+    pub shape_pt_lat: f64,
+    pub shape_pt_lon: f64,
+    pub shape_pt_sequence: u64,
+    pub shape_dist_travelled: Option<f64>,
+}
+
+impl GtfsObject for Shape {
+    const FILE: &'static str = "shapes.txt";
+    const REQUIRED: bool = false;
+}
 
 
 #[test]

@@ -1,7 +1,9 @@
 mod gtfs;
 mod geodata;
+use std::collections::HashMap;
+
+use geodata::{GeoShapePoint, StopsJson};
 use geojson::ser;
-use crate::functions::geodata::from_stop;
 
 
 pub fn load_gtfs_file(gtfs_path: std::path::PathBuf) -> gtfs::GtfsFile {
@@ -145,12 +147,40 @@ pub fn areas_out(gtfs_file: &mut gtfs::GtfsFile) {
     }
 }
 
+pub fn stop_areas_out(gtfs_file: &mut gtfs::GtfsFile) {
+    let stop_areas: gtfs::Iter<gtfs::StopArea> = gtfs_file.into_iter();
+    for stop_area in stop_areas {
+        println!("{:?}", stop_area.unwrap())
+    }
+}
+
+pub fn networks_out(gtfs_file: &mut gtfs::GtfsFile) {
+    let networks: gtfs::Iter<gtfs::Network> = gtfs_file.into_iter();
+    for network in networks {
+        println!("{:?}", network.unwrap())
+    }
+}
+
+pub fn route_networks_out(gtfs_file: &mut gtfs::GtfsFile) {
+    let route_networks: gtfs::Iter<gtfs::RouteNetwork> = gtfs_file.into_iter();
+    for route_network in route_networks {
+        println!("{:?}", route_network.unwrap())
+    }
+}
+
+pub fn shapes_out(gtfs_file: &mut gtfs::GtfsFile) {
+    let shapes: gtfs::Iter<gtfs::Shape> = gtfs_file.into_iter();
+    for shape in shapes {
+        println!("{:?}", shape.unwrap())
+    }
+}
+
 pub fn simple_stops_json(gtfs_file: &mut gtfs::GtfsFile) -> String {
     let stops: Vec<gtfs::Stops> = gtfs_file.read_vec();
 
     let mut json_stops: Vec<geodata::StopsJson> = vec![];
     for stop in stops {
-        match from_stop(stop) {
+        match StopsJson::from_stop(stop) {
             Some(json_stop) => {
                 json_stops.push(json_stop)
             },
@@ -159,5 +189,25 @@ pub fn simple_stops_json(gtfs_file: &mut gtfs::GtfsFile) -> String {
     }
     let output_geojson = ser::to_feature_collection_string(&json_stops).unwrap();
     output_geojson
+}
+
+pub fn shapes_json(gtfs_file: &mut gtfs::GtfsFile)  {
+    let shapes: Vec<gtfs::Shape> = gtfs_file.read_vec();
+    let mut shapes_map: HashMap<String, Vec<GeoShapePoint>> = HashMap::new();
+
+    for shape in shapes {
+        let geoshape: GeoShapePoint = GeoShapePoint::from_shape(shape);
+
+        if !(shapes_map.contains_key(geoshape.shape_id.as_str())) {
+            let key: String = geoshape.shape_id.as_str().to_owned();
+            let mut vec: Vec<GeoShapePoint> = vec![geoshape];
+            shapes_map.insert(key, vec);
+        } else {
+            if let Some(vec) = shapes_map.get_mut(geoshape.shape_id.as_str()) {
+                    
+            }
+        }
+        
+    }
 }
 
