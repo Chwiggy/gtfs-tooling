@@ -222,6 +222,7 @@ pub fn shapes_json(gtfs_file: &mut gtfs::GtfsFile) -> String  {
         
     }
     println!("{:?}", shape_vec.first().unwrap());
+    // TODO why does this fail
     let geojson = ser::to_feature_collection_string(&shape_vec);
     match geojson {
         Ok(output) => return output,
