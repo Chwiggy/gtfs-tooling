@@ -1,4 +1,4 @@
-mod gtfs;
+pub mod gtfs;
 mod geodata;
 use std::collections::HashMap;
 
@@ -21,34 +21,7 @@ pub fn file_list(gtfs_file: &mut gtfs::GtfsFile) {
     println!("GTFS archive contains: {:?}", file_list);
 }
 
-pub fn agency_out(gtfs_file: &mut gtfs::GtfsFile) {      
-    let agencies: gtfs::Iter<gtfs::Agency> = gtfs_file.into_iter();
-    for agency in agencies {
-        println!("{:?}", agency.unwrap())
-    }
-}
-
-pub fn stops_out(gtfs_file: &mut gtfs::GtfsFile) {      
-    let stops: gtfs::Iter<gtfs::Stops> = gtfs_file.into_iter();
-    for stop in stops {
-        println!("{:?}", stop.unwrap())
-    }
-}
-
-pub fn routes_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let routes: gtfs::Iter<gtfs::Route> = gtfs_file.into_iter();
-    for route in routes {
-        println!("{:?}", route.unwrap())
-    } 
-}
-
-pub fn trips_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let trips: gtfs::Iter<gtfs::Trip> = gtfs_file.into_iter();
-    for trip in trips {
-        println!("{:?}", trip.unwrap())
-    } 
-}
-
+// Not sure what to do with this special case to handle the sample gtfs
 pub fn stop_times_out(gtfs_file: &mut gtfs::GtfsFile) {
     let stop_times: gtfs::Iter<gtfs::StopTime> = gtfs_file.into_iter();
     for stop_time in stop_times {
@@ -75,20 +48,7 @@ pub fn stop_times_out(gtfs_file: &mut gtfs::GtfsFile) {
     } 
 }
 
-pub fn calendar_out(gtfs_file: &mut gtfs::GtfsFile) { 
-    let calendar: gtfs::Iter<gtfs::Calendar> = gtfs_file.into_iter();
-    for calendar_entry in calendar {
-        println!("{:?}", calendar_entry.unwrap())
-    }
-}
-
-pub fn calendar_dates_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let calendar_dates: gtfs::Iter<gtfs::CalendarDates> = gtfs_file.into_iter();
-    for calendar_date in calendar_dates {
-        println!("{:?}", calendar_date.unwrap())
-    }
-}
-
+// Another odd special case
 pub fn fare_attributes_out(gtfs_file: &mut gtfs::GtfsFile) {
     let fare_attributes: gtfs::Iter<gtfs::FareAttributes> = gtfs_file.into_iter();
     for fare_attribute in fare_attributes {
@@ -99,85 +59,10 @@ pub fn fare_attributes_out(gtfs_file: &mut gtfs::GtfsFile) {
     }
 }
 
-pub fn fare_rules_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let fare_rules: gtfs::Iter<gtfs::FareRule> = gtfs_file.into_iter();
-    for fare_rule in fare_rules {
-        println!("{:?}", fare_rule.unwrap())
-    }
-}
-
-pub fn timeframes_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let timeframes: gtfs::Iter<gtfs::Timeframe> = gtfs_file.into_iter();
-    for timeframe in timeframes {
-        println!("{:?}", timeframe.unwrap())
-    }
-}
-
-pub fn fare_media_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let fare_media: gtfs::Iter<gtfs::FareMedium> = gtfs_file.into_iter();
-    for fare_medium in fare_media {
-        println!("{:?}", fare_medium.unwrap())
-    }
-}
-
-pub fn fare_products_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let fare_products: gtfs::Iter<gtfs::FareProduct> = gtfs_file.into_iter();
-    for fare_product in fare_products {
-        println!("{:?}", fare_product.unwrap())
-    }
-}
-
-pub fn fare_leg_rules_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let fare_leg_rules: gtfs::Iter<gtfs::FareLegRule> = gtfs_file.into_iter();
-    for fare_leg_rule in fare_leg_rules {
-        println!("{:?}", fare_leg_rule.unwrap())
-    }
-}
-
-pub fn fare_tranfer_rules_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let fare_transfer_rules: gtfs::Iter<gtfs::FareTransferRule> = gtfs_file.into_iter();
-    for fare_transfer_rule in fare_transfer_rules {
-        println!("{:?}", fare_transfer_rule.unwrap())
-    }
-}
-
-pub fn areas_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let areas: gtfs::Iter<gtfs::Areas> = gtfs_file.into_iter();
-    for area in areas {
-        println!("{:?}", area.unwrap())
-    }
-}
-
-pub fn stop_areas_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let stop_areas: gtfs::Iter<gtfs::StopArea> = gtfs_file.into_iter();
-    for stop_area in stop_areas {
-        println!("{:?}", stop_area.unwrap())
-    }
-}
-
-pub fn networks_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let networks: gtfs::Iter<gtfs::Network> = gtfs_file.into_iter();
-    for network in networks {
-        println!("{:?}", network.unwrap())
-    }
-}
-
-pub fn route_networks_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let route_networks: gtfs::Iter<gtfs::RouteNetwork> = gtfs_file.into_iter();
-    for route_network in route_networks {
-        println!("{:?}", route_network.unwrap())
-    }
-}
-
-pub fn shapes_out(gtfs_file: &mut gtfs::GtfsFile) {
-    let shapes: gtfs::Iter<gtfs::Shape> = gtfs_file.into_iter();
-    for shape in shapes {
-        println!("{:?}", shape.unwrap())
-    }
-}
+// JSON output to file
 
 pub fn simple_stops_json(gtfs_file: &mut gtfs::GtfsFile) -> String {
-    let stops: Vec<gtfs::Stops> = gtfs_file.read_vec();
+    let stops: Vec<gtfs::Stop> = gtfs_file.read_vec();
 
     let mut json_stops: Vec<geodata::StopsJson> = vec![];
     for stop in stops {
@@ -192,7 +77,7 @@ pub fn simple_stops_json(gtfs_file: &mut gtfs::GtfsFile) -> String {
     output_geojson
 }
 
-pub fn shapes_json(gtfs_file: &mut gtfs::GtfsFile) -> String  {
+pub fn simple_shapes_json(gtfs_file: &mut gtfs::GtfsFile) -> String  {
     let shapes: Vec<gtfs::Shape> = gtfs_file.read_vec();
     let mut shapes_map: HashMap<String, Vec<Coord<f64>>> = HashMap::new();
 

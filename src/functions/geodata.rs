@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use super::gtfs::{LocationType, Shape, Stops, WheelchairAccessibility};
+use super::gtfs::{LocationType, Shape, Stop, WheelchairAccessibility};
 
 #[derive(Serialize, Debug, PartialEq)]
 pub struct StopsJson {
@@ -22,7 +22,7 @@ pub struct StopsJson {
 }
 
 impl StopsJson {
-    pub fn from_stop(stop: Stops) -> Option<StopsJson> {
+    pub fn from_stop(stop: Stop) -> Option<StopsJson> {
         if let Some(x_coord) = stop.stop_lon {
             if let Some(y_coord) = stop.stop_lat {
                 Some(
@@ -84,7 +84,7 @@ pub struct GeoShapeLine {
 
 #[test]
 fn test_from_stop() {
-    let stop = Stops{
+    let stop = Stop{
         stop_id: String::from("test"),
         stop_code: None,
         stop_name: Some(String::from("test")),

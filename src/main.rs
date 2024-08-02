@@ -1,6 +1,7 @@
 mod functions;
 
 use clap::{Parser, Subcommand, Args};
+use functions::gtfs;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -56,6 +57,16 @@ enum StandardFiles {
     Networks,
     RouteNetworks,
     Shapes,
+    Frequencies,
+    Transfers,
+    Pathways,
+    Levels,
+    LocationGroups,
+    LocationGroupStops,
+    BookingRules,
+    Translations,
+    FeedInfo,
+    Attributions,
 }
 
 fn main() {
@@ -72,61 +83,93 @@ fn main() {
                     functions::file_list(&mut gtfs_file)
                 },
                 StandardFiles::Agencies => {
-                    functions::agency_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::Agency>();
                 },
                 StandardFiles::Stops => {
-                    functions::stops_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::Stop>()
                 },
                 StandardFiles::Routes => {
-                    functions::routes_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::Route>()
                 },
                 StandardFiles::Trips => {
-                    functions::trips_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::Trip>()
                 },
                 StandardFiles::StopTimes => {
+                    // Stop Times are a special case due to the broken sample gtfs
                     functions::stop_times_out(&mut gtfs_file)
                 },
                 StandardFiles::Calendar => {
-                    functions::calendar_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::Calendar>()
                 },
                 StandardFiles::CalendarDates => {
-                    functions::calendar_dates_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::CalendarDate>()
                 },
                 StandardFiles::FareAttributes => {
+                    // Another special case
                     functions::fare_attributes_out(&mut gtfs_file)
                 },
                 StandardFiles::FareRules => {
-                    functions::fare_rules_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::FareRule>()
                 },
                 StandardFiles::Timeframes => {
-                    functions::timeframes_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::Timeframe>()
                 },
                 StandardFiles::FareMedia => {
-                    functions::fare_media_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::FareMedium>()
                 }
                 StandardFiles::FareProducts => {
-                    functions::fare_products_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::FareProduct>()
                 },
                 StandardFiles::FareLegRules => {
-                    functions::fare_leg_rules_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::FareLegRule>()
                 },
                 StandardFiles::FareTransferRules => {
-                    functions::fare_tranfer_rules_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::FareTransferRule>()
                 },
                 StandardFiles::Areas => {
-                    functions::areas_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::Area>()
                 },
                 StandardFiles::StopAreas => {
-                    functions::stop_areas_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::StopArea>()
                 },
                 StandardFiles::Networks => {
-                    functions::networks_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::Network>()
                 },
                 StandardFiles::RouteNetworks => {
-                    functions::route_networks_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::RouteNetwork>()
                 },
                 StandardFiles::Shapes => {
-                    functions::shapes_out(&mut gtfs_file)
+                    gtfs_file.to_stdout::<gtfs::Shape>()
+                },
+                StandardFiles::Frequencies => {
+                    gtfs_file.to_stdout::<gtfs::Frequency>()
+                },
+                StandardFiles::Transfers => {
+                    gtfs_file.to_stdout::<gtfs::Transfer>()
+                },
+                StandardFiles::Pathways => {
+                    gtfs_file.to_stdout::<gtfs::Pathway>()
+                },
+                StandardFiles::Levels => {
+                    gtfs_file.to_stdout::<gtfs::Level>()
+                },
+                StandardFiles::LocationGroups => {
+                    gtfs_file.to_stdout::<gtfs::LocationGroup>()
+                },
+                StandardFiles::LocationGroupStops => {
+                    gtfs_file.to_stdout::<gtfs::LocationGroupStop>()
+                },
+                StandardFiles::BookingRules => {
+                    gtfs_file.to_stdout::<gtfs::BookingRule>()
+                },
+                StandardFiles::Translations => {
+                    gtfs_file.to_stdout::<gtfs::Translation>()
+                },
+                StandardFiles::FeedInfo => {
+                    gtfs_file.to_stdout::<gtfs::FeedInfo>()
+                },
+                StandardFiles::Attributions => {
+                    gtfs_file.to_stdout::<gtfs::Attributions>()
                 }
             } 
         },
@@ -140,7 +183,7 @@ fn main() {
                     std::fs::write(args.output, json).expect("Unable to write file");
                 },
                 StandardFiles::Shapes => {
-                    let json: String = functions::shapes_json(&mut gtfs_file);
+                    let json: String = functions::simple_shapes_json(&mut gtfs_file);
                     std::fs::write(args.output, json).expect("Unable to write file");
                 },
                 _ => {

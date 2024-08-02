@@ -1,4 +1,5 @@
 use core::{fmt, panic};
+use std::fmt::Debug;
 use std::path::PathBuf;
 use std::{fs::File, usize};
 
@@ -67,6 +68,16 @@ impl GtfsFile {
         output
     }
 
+    pub fn to_stdout<T>(&mut self)
+    where
+        T: for <'a> GtfsObject + for <'de> serde::Deserialize<'de> + for <'a> Debug
+    {
+        let entries: Iter::<T> = self.into_iter();
+        for entry in entries {
+            println!("{:?}", entry.unwrap())
+        }
+    }
+
     pub fn list_files(&mut self) -> Vec<String> {
     
         let mut files: Vec<String> = vec![];
@@ -124,7 +135,7 @@ impl GtfsObject for Agency {
 
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct Stops {
+pub struct Stop {
     pub stop_id: String,
     pub stop_code: Option<String>,
     pub stop_name: Option<String>,
@@ -142,7 +153,7 @@ pub struct Stops {
     pub platform_code: Option<String>,
 }
 
-impl GtfsObject for Stops {
+impl GtfsObject for Stop {
     const FILE: &'static str = "stops.txt";
     const REQUIRED: bool = true;
 }
@@ -369,6 +380,7 @@ impl GtfsObject for StopTime {
 }
 
 
+
 #[serde_as]
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Calendar {
@@ -438,7 +450,7 @@ impl fmt::Debug for GtfsSpecError {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct CalendarDates {
+pub struct CalendarDate {
     pub service_id: String,
     #[serde(with = "date")]
     pub date: NaiveDate,
@@ -452,7 +464,7 @@ pub enum CalendarException {
     Removed = 2,
 }
 
-impl GtfsObject for CalendarDates {
+impl GtfsObject for CalendarDate {
     const FILE: &'static str = "calendar_dates.txt";
     const REQUIRED: bool = false;
 }
@@ -612,12 +624,12 @@ impl GtfsObject for FareTransferRule {
 
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Areas {
+pub struct Area {
     pub area_id: String,
     pub area_name: Option<String>,
 }
 
-impl GtfsObject for Areas {
+impl GtfsObject for Area {
     const FILE: &'static str = "areas.txt";
     const REQUIRED: bool = false;
 }
@@ -673,7 +685,7 @@ impl GtfsObject for Shape {
 
 #[serde_as]
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Frequencies {
+pub struct Frequency {
     pub trip_id: String,
     pub start_time: Time,
     pub end_time: Time,
@@ -682,7 +694,7 @@ pub struct Frequencies {
     pub exact_times: Option<bool>,
 }
 
-impl GtfsObject for Frequencies {
+impl GtfsObject for Frequency {
     const FILE: &'static str = "frequencies.txt";
     const REQUIRED: bool = false;
 }
@@ -828,7 +840,7 @@ impl GtfsObject for BookingRule {
 
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Translations {
+pub struct Translation {
     // This enum is confusingly documented:
     pub table_name: String,
     pub field_name: String,
@@ -839,7 +851,7 @@ pub struct Translations {
     pub field_value: Option<String>,
 }
 
-impl GtfsObject for Translations {
+impl GtfsObject for Translation {
     const FILE: &'static str = "Translations.txt";
     const REQUIRED: bool = false;
 }
