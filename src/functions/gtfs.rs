@@ -3,9 +3,9 @@ use std::fmt::Debug;
 use std::path::PathBuf;
 use std::{fs::File, usize};
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use serde_with::{serde_as,BoolFromInt};
+use serde_with::{serde_as, BoolFromInt};
 
 use chrono::NaiveDate;
 
@@ -15,7 +15,7 @@ pub use zip::read::ZipArchive;
 use zip::result::ZipError;
 
 pub struct GtfsFile {
-    archive: ZipArchive<File>
+    archive: ZipArchive<File>,
 }
 
 pub type Iter<'a, T> = csv::DeserializeRecordsIntoIter<zip::read::ZipFile<'a>, T>;
@@ -29,36 +29,35 @@ impl GtfsFile {
             Ok(_) => return Ok(gtfs_candidate),
             Err(error) => {
                 println!("{}", error);
-                return Err(error)
+                return Err(error);
             }
         }
     }
 
     pub fn into_iter<T>(&mut self) -> Iter<T>
     where
-        T: for <'a> GtfsObject + for<'de> serde::Deserialize<'de>
+        T: for<'a> GtfsObject + for<'de> serde::Deserialize<'de>,
     {
         let file_result = self.archive.by_name(T::FILE);
         match file_result {
             Ok(file) => {
                 let reader = csv::Reader::from_reader(file);
                 reader.into_deserialize::<T>()
-            },
+            }
             Err(ZipError::FileNotFound) => {
                 if !T::REQUIRED {
                     panic!("The file requested is optional and missing")
                 } else {
                     panic!("A required file seems to be missing")
                 }
-            },
-            Err(error) => panic!("{}", error)
+            }
+            Err(error) => panic!("{}", error),
         }
-
     }
 
     pub fn read_vec<T>(&mut self) -> Vec<T>
     where
-        T: for <'a> GtfsObject + for<'de> serde::Deserialize<'de>
+        T: for<'a> GtfsObject + for<'de> serde::Deserialize<'de>,
     {
         let mut output: Vec<T> = vec![];
         for result in self.into_iter() {
@@ -70,32 +69,31 @@ impl GtfsFile {
 
     pub fn to_stdout<T>(&mut self)
     where
-        T: for <'a> GtfsObject + for <'de> serde::Deserialize<'de> + for <'a> Debug
+        T: for<'a> GtfsObject + for<'de> serde::Deserialize<'de> + for<'a> Debug,
     {
-        let entries: Iter::<T> = self.into_iter();
+        let entries: Iter<T> = self.into_iter();
         for entry in entries {
             println!("{:?}", entry.unwrap())
         }
     }
 
     pub fn list_files(&mut self) -> Vec<String> {
-    
         let mut files: Vec<String> = vec![];
-    
+
         for i in 0..self.archive.len() {
             let file: zip::read::ZipFile = self.archive.by_index(i).unwrap();
             files.push(String::from(file.name()));
         }
-    
+
         files
     }
 
     fn check_file_validity(&mut self) -> Result<bool, GtfsSpecError> {
         let files: Vec<String> = self.list_files();
-        
+
         if !files.contains(&String::from("agency.txt")) {
             return Err(GtfsSpecError);
-        } else if !files.contains(&String::from("stops.txt")){
+        } else if !files.contains(&String::from("stops.txt")) {
             return Err(GtfsSpecError);
         } else if !files.contains(&String::from("routes.txt")) {
             return Err(GtfsSpecError);
@@ -103,9 +101,11 @@ impl GtfsFile {
             return Err(GtfsSpecError);
         } else if !files.contains(&String::from("stop_times.txt")) {
             return Err(GtfsSpecError);
-        } else if !files.contains(&String::from("calendar.txt")) || !files.contains(&String::from("calendar_dates.txt")) {
+        } else if !files.contains(&String::from("calendar.txt"))
+            || !files.contains(&String::from("calendar_dates.txt"))
+        {
             return Err(GtfsSpecError);
-        } 
+        }
 
         Ok(true)
     }
@@ -132,7 +132,6 @@ impl GtfsObject for Agency {
     const FILE: &'static str = "agency.txt";
     const REQUIRED: bool = true;
 }
-
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Stop {
@@ -195,7 +194,6 @@ pub struct Route {
     pub network_id: Option<String>,
 }
 
-
 impl GtfsObject for Route {
     const FILE: &'static str = "routes.txt";
     const REQUIRED: bool = true;
@@ -205,7 +203,7 @@ impl GtfsObject for Route {
 #[serde(untagged)]
 pub enum RouteType {
     Standard(StandardRouteType),
-    HVT(HVTRouteType)
+    HVT(HVTRouteType),
 }
 
 #[derive(Debug, Serialize_repr, Deserialize_repr)]
@@ -223,10 +221,9 @@ pub enum StandardRouteType {
     Monorail = 12,
 }
 
-
 #[derive(Debug, Serialize_repr, Deserialize_repr)]
 #[repr(u16)]
-pub enum HVTRouteType {    
+pub enum HVTRouteType {
     /*
     The following route types are an extension ba-ed on Hierarchical Vehicle Types
     see https://developers.google.com/transit/gtfs/reference/extended-route-types
@@ -264,7 +261,7 @@ pub enum HVTRouteType {
     Funicular = 1400,
     CommunalTaxi = 1501,
     Miscellaneous = 1700,
-    HorseDrawnCarriage = 1702
+    HorseDrawnCarriage = 1702,
 }
 
 #[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
@@ -349,8 +346,8 @@ impl Serialize for Time {
 // TODO add check for malformed minutes or seconds
 impl<'de> Deserialize<'de> for Time {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: serde::Deserializer<'de>,
+    where
+        D: serde::Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         let s: Vec<&str> = s.split(':').collect();
@@ -360,12 +357,11 @@ impl<'de> Deserialize<'de> for Time {
                 let m = s[1].parse().map_err(serde::de::Error::custom)?;
                 let s = s[2].parse().map_err(serde::de::Error::custom)?;
                 Ok(Time { h, m, s })
-            },
+            }
             _ => Err(serde::de::Error::custom("Malformatted time")),
         }
     }
 }
-
 
 #[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
 #[repr(u8)]
@@ -378,8 +374,6 @@ impl GtfsObject for StopTime {
     const FILE: &'static str = "stop_times.txt";
     const REQUIRED: bool = true;
 }
-
-
 
 #[serde_as]
 #[derive(Debug, Deserialize, Serialize)]
@@ -427,7 +421,6 @@ mod date {
         let dt = NaiveDate::parse_from_str(&s, FORMAT).map_err(serde::de::Error::custom)?;
         Ok(dt)
     }
-
 }
 
 impl GtfsObject for Calendar {
@@ -478,7 +471,7 @@ pub struct FareAttributes {
     // This being a none implies unlimited transfers, not none
     pub transfers: Option<TransferCount>,
     pub agency_id: Option<String>,
-    pub transfer_duration: Option<u64>
+    pub transfer_duration: Option<u64>,
 }
 
 #[derive(Debug, Serialize_repr, Deserialize_repr)]
@@ -530,7 +523,6 @@ impl GtfsObject for Timeframe {
     const REQUIRED: bool = false;
 }
 
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct FareMedium {
     pub fare_media_id: String,
@@ -553,7 +545,6 @@ impl GtfsObject for FareMedium {
     const REQUIRED: bool = false;
 }
 
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct FareProduct {
     pub fare_product_id: String,
@@ -567,7 +558,6 @@ impl GtfsObject for FareProduct {
     const REQUIRED: bool = false;
 }
 
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct FareLegRule {
     pub leg_group_id: Option<String>,
@@ -577,16 +567,13 @@ pub struct FareLegRule {
     pub from_timeframe_group_id: Option<String>,
     pub to_timeframe_group_id: Option<String>,
     pub fare_product_id: String,
-    pub rule_priority: Option<u64>
+    pub rule_priority: Option<u64>,
 }
 
 impl GtfsObject for FareLegRule {
     const FILE: &'static str = "fare_leg_rules.txt";
     const REQUIRED: bool = false;
 }
-
-
-
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct FareTransferRule {
@@ -614,14 +601,13 @@ pub enum FareTransferType {
     // The fuck does this mean
     AAB = 0,
     AABB = 1,
-    AB = 2
+    AB = 2,
 }
 
 impl GtfsObject for FareTransferRule {
     const FILE: &'static str = "fare_transfer_rules.txt";
     const REQUIRED: bool = false;
 }
-
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Area {
@@ -645,11 +631,10 @@ impl GtfsObject for StopArea {
     const REQUIRED: bool = false;
 }
 
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Network {
     pub network_id: String,
-    pub network_name: Option<String>
+    pub network_name: Option<String>,
 }
 
 impl GtfsObject for Network {
@@ -682,7 +667,6 @@ impl GtfsObject for Shape {
     const REQUIRED: bool = false;
 }
 
-
 #[serde_as]
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Frequency {
@@ -698,7 +682,6 @@ impl GtfsObject for Frequency {
     const FILE: &'static str = "frequencies.txt";
     const REQUIRED: bool = false;
 }
-
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Transfer {
@@ -727,7 +710,6 @@ impl GtfsObject for Transfer {
     const FILE: &'static str = "transfers.txt";
     const REQUIRED: bool = false;
 }
-
 
 #[serde_as]
 #[derive(Debug, Deserialize, Serialize)]
@@ -764,7 +746,6 @@ impl GtfsObject for Pathway {
     const REQUIRED: bool = false;
 }
 
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Level {
     pub level_id: String,
@@ -776,11 +757,10 @@ impl GtfsObject for Level {
     const REQUIRED: bool = false;
 }
 
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LocationGroup {
     pub location_group_id: String,
-    pub location_group_name: Option<String>
+    pub location_group_name: Option<String>,
 }
 
 impl GtfsObject for LocationGroup {
@@ -788,11 +768,10 @@ impl GtfsObject for LocationGroup {
     const REQUIRED: bool = false;
 }
 
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LocationGroupStop {
     pub location_group_id: String,
-    pub stop_id: String
+    pub stop_id: String,
 }
 
 impl GtfsObject for LocationGroupStop {
@@ -822,7 +801,7 @@ pub struct BookingRule {
     pub drop_off_message: Option<String>,
     pub phone_number: Option<String>,
     pub info_url: Option<String>,
-    pub booking_url: Option<String>
+    pub booking_url: Option<String>,
 }
 
 #[derive(Debug, Serialize_repr, Deserialize_repr)]
@@ -837,7 +816,6 @@ impl GtfsObject for BookingRule {
     const FILE: &'static str = "booking_rules.txt";
     const REQUIRED: bool = false;
 }
-
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Translation {
@@ -855,7 +833,6 @@ impl GtfsObject for Translation {
     const FILE: &'static str = "Translations.txt";
     const REQUIRED: bool = false;
 }
-
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct FeedInfo {
@@ -909,7 +886,6 @@ impl GtfsObject for FeedInfo {
     const REQUIRED: bool = false;
 }
 
-
 #[serde_as]
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Attributions {
@@ -934,10 +910,21 @@ impl GtfsObject for Attributions {
     const REQUIRED: bool = false;
 }
 
-
 #[test]
 fn test_new_gtfsfile_loading() {
-    let expected_data: Vec<&str> = vec!["agency.txt", "calendar.txt", "calendar_dates.txt", "fare_attributes.txt", "fare_rules.txt", "frequencies.txt", "routes.txt", "shapes.txt", "stop_times.txt", "stops.txt", "trips.txt"];
+    let expected_data: Vec<&str> = vec![
+        "agency.txt",
+        "calendar.txt",
+        "calendar_dates.txt",
+        "fare_attributes.txt",
+        "fare_rules.txt",
+        "frequencies.txt",
+        "routes.txt",
+        "shapes.txt",
+        "stop_times.txt",
+        "stops.txt",
+        "trips.txt",
+    ];
     let mut expected: Vec<String> = Vec::new();
     for file_name in expected_data {
         expected.push(String::from(file_name))
@@ -954,6 +941,6 @@ fn test_new_broken_gtfs() {
     let path: PathBuf = PathBuf::from("test_data/sample-feed-1-broken.zip");
     let _gtfs_file = match GtfsFile::new(&path) {
         Ok(_) => panic!("This gtfs file should have been rejected as invalid"),
-        Err(error) => println!("correctly rejected invalid gtfs file, with error {}", error)
+        Err(error) => println!("correctly rejected invalid gtfs file, with error {}", error),
     };
 }

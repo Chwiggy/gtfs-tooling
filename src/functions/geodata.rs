@@ -25,34 +25,30 @@ impl StopsJson {
     pub fn from_stop(stop: Stop) -> Option<StopsJson> {
         if let Some(x_coord) = stop.stop_lon {
             if let Some(y_coord) = stop.stop_lat {
-                Some(
-                    StopsJson {
-                        id: stop.stop_id,
-                        stop_code: stop.stop_code,
-                        stop_name: stop.stop_name,
-                        tts_stop_name: stop.tts_stop_name,
-                        stop_desc: stop.stop_desc,
-                        geometry: geo_types::Point::new(x_coord, y_coord),
-                        zone_id: stop.zone_id,
-                        stop_url: stop.stop_url,
-                        location_type: stop.location_type,
-                        parent_station: stop.parent_station,
-                        stop_timezone: stop.stop_timezone,
-                        wheelchair_boarding: stop.wheelchair_boarding,
-                        level_id: stop.level_id,
-                        platform_code: stop.platform_code
-                    }
-                )
+                Some(StopsJson {
+                    id: stop.stop_id,
+                    stop_code: stop.stop_code,
+                    stop_name: stop.stop_name,
+                    tts_stop_name: stop.tts_stop_name,
+                    stop_desc: stop.stop_desc,
+                    geometry: geo_types::Point::new(x_coord, y_coord),
+                    zone_id: stop.zone_id,
+                    stop_url: stop.stop_url,
+                    location_type: stop.location_type,
+                    parent_station: stop.parent_station,
+                    stop_timezone: stop.stop_timezone,
+                    wheelchair_boarding: stop.wheelchair_boarding,
+                    level_id: stop.level_id,
+                    platform_code: stop.platform_code,
+                })
             } else {
                 None
             }
         } else {
             None
         }
-
     }
 }
-
 
 #[derive(Serialize, Debug, PartialEq)]
 pub struct GeoShapePoint {
@@ -69,7 +65,7 @@ impl GeoShapePoint {
             shape_id: shape.shape_id,
             shape_point: geo_types::Point::new(shape.shape_pt_lon, shape.shape_pt_lat),
             shape_pt_sequence: shape.shape_pt_sequence,
-            shape_dist_travelled: shape.shape_dist_travelled
+            shape_dist_travelled: shape.shape_dist_travelled,
         }
     }
 }
@@ -78,13 +74,12 @@ impl GeoShapePoint {
 pub struct GeoShapeLine {
     pub shape_id: String,
     #[serde(serialize_with = "geojson::ser::serialize_geometry")]
-    pub geometry: geo_types::LineString
+    pub geometry: geo_types::LineString,
 }
-
 
 #[test]
 fn test_from_stop() {
-    let stop = Stop{
+    let stop = Stop {
         stop_id: String::from("test"),
         stop_code: None,
         stop_name: Some(String::from("test")),
@@ -99,16 +94,16 @@ fn test_from_stop() {
         stop_timezone: None,
         wheelchair_boarding: Some(WheelchairAccessibility::Unknown),
         level_id: None,
-        platform_code: None
+        platform_code: None,
     };
 
-    let expected_stop = StopsJson{
+    let expected_stop = StopsJson {
         id: String::from("test"),
         stop_code: None,
         stop_name: Some(String::from("test")),
         tts_stop_name: None,
         stop_desc: None,
-        geometry: geo_types::Point::new(48.23,8.0),
+        geometry: geo_types::Point::new(48.23, 8.0),
         zone_id: None,
         stop_url: None,
         location_type: Some(LocationType::Station),
@@ -116,7 +111,7 @@ fn test_from_stop() {
         stop_timezone: None,
         wheelchair_boarding: Some(WheelchairAccessibility::Unknown),
         level_id: None,
-        platform_code: None
+        platform_code: None,
     };
 
     let result: StopsJson = StopsJson::from_stop(stop).unwrap();
