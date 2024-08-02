@@ -1,2 +1,3 @@
 /target
 test_data/20240513_fahrplaene_gesamtdeutschland_gtfs.zip
+*.json

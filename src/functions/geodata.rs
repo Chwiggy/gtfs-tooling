@@ -78,7 +78,7 @@ impl GeoShapePoint {
 pub struct GeoShapeLine {
     pub shape_id: String,
     #[serde(serialize_with = "geojson::ser::serialize_geometry")]
-    pub shape_line: geo_types::LineString
+    pub geometry: geo_types::LineString
 }
 
 

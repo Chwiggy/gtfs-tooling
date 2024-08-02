@@ -196,6 +196,7 @@ pub fn shapes_json(gtfs_file: &mut gtfs::GtfsFile) -> String  {
     let shapes: Vec<gtfs::Shape> = gtfs_file.read_vec();
     let mut shapes_map: HashMap<String, Vec<Coord<f64>>> = HashMap::new();
 
+    // Create a hashmap of coord vectors for each shape id
     for shape in shapes {
         let geoshape: GeoShapePoint = GeoShapePoint::from_shape(shape);
         if let Some(vec) = shapes_map.get_mut(geoshape.shape_id.as_str()) {
@@ -209,6 +210,7 @@ pub fn shapes_json(gtfs_file: &mut gtfs::GtfsFile) -> String  {
         }
     }
 
+    // Combine Vectors of points into a line string for a GeoShapeLine struct
     let mut shape_vec: Vec<GeoShapeLine> = Vec::new();
     for k in shapes_map {
         let id: String = k.0;
@@ -216,13 +218,12 @@ pub fn shapes_json(gtfs_file: &mut gtfs::GtfsFile) -> String  {
         let line: geometry::LineString = geo_types::LineString::new(points);
         let geo_shape_line: GeoShapeLine = GeoShapeLine {
             shape_id: id,
-            shape_line: line,
+            geometry: line,
         };
         shape_vec.push(geo_shape_line);
-        
     }
-    println!("{:?}", shape_vec.first().unwrap());
-    // TODO why does this fail
+
+    
     let geojson = ser::to_feature_collection_string(&shape_vec);
     match geojson {
         Ok(output) => return output,
