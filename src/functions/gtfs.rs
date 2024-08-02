@@ -671,6 +671,258 @@ impl GtfsObject for Shape {
 }
 
 
+#[serde_as]
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Frequencies {
+    pub trip_id: String,
+    pub start_time: Time,
+    pub end_time: Time,
+    pub headway_secs: u64,
+    #[serde_as(as = "Option<BoolFromInt>")]
+    pub exact_times: Option<bool>,
+}
+
+impl GtfsObject for Frequencies {
+    const FILE: &'static str = "frequencies.txt";
+    const REQUIRED: bool = false;
+}
+
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Transfer {
+    pub from_stop_id: Option<String>,
+    pub to_stop_id: Option<String>,
+    pub from_route_id: Option<String>,
+    pub to_route_id: Option<String>,
+    pub from_trip_id: Option<String>,
+    pub to_trip_id: Option<String>,
+    pub transfer_type: TransferType,
+    pub min_transfer_time: Option<u64>,
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum TransferType {
+    Recommended = 0,
+    Timed = 1,
+    MinTime = 2,
+    NotPossible = 3,
+    InSeat = 4,
+    Reboard = 5,
+}
+
+impl GtfsObject for Transfer {
+    const FILE: &'static str = "transfers.txt";
+    const REQUIRED: bool = false;
+}
+
+
+#[serde_as]
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Pathway {
+    pub pathway_id: String,
+    pub from_stop_id: String,
+    pub to_stop_id: String,
+    pub pathway_mode: PathwayMode,
+    #[serde_as(as = "BoolFromInt")]
+    pub is_bidirectional: bool,
+    pub length: Option<f64>,
+    pub traversal_time: Option<u64>,
+    pub stair_count: Option<i64>,
+    pub max_slope: Option<f64>,
+    pub min_width: Option<f64>,
+    pub signposted_as: Option<String>,
+    pub reversed_signposted_as: Option<String>,
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum PathwayMode {
+    Walkway = 1,
+    Stairs = 2,
+    MovingSidewalk = 3,
+    Escalator = 4,
+    Elevator = 5,
+    FareGate = 6,
+    ExitGate = 7,
+}
+
+impl GtfsObject for Pathway {
+    const FILE: &'static str = "pathways.txt";
+    const REQUIRED: bool = false;
+}
+
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Level {
+    pub level_id: String,
+    pub level_index: f64,
+    pub level_name: Option<String>,
+}
+impl GtfsObject for Level {
+    const FILE: &'static str = "levels.txt";
+    const REQUIRED: bool = false;
+}
+
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct LocationGroup {
+    pub location_group_id: String,
+    pub location_group_name: Option<String>
+}
+
+impl GtfsObject for LocationGroup {
+    const FILE: &'static str = "location_group.txt";
+    const REQUIRED: bool = false;
+}
+
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct LocationGroupStop {
+    pub location_group_id: String,
+    pub stop_id: String
+}
+
+impl GtfsObject for LocationGroupStop {
+    const FILE: &'static str = "location_group_stops.txt";
+    const REQUIRED: bool = false;
+}
+
+// TODO deal with locations.json
+// pub struct Locations {
+//     pub id: String,
+
+// }
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct BookingRule {
+    pub booking_rule_id: String,
+    pub booking_type: BookingType,
+    pub prior_notice_duration_min: Option<i64>,
+    pub prior_notice_duration_max: Option<i64>,
+    pub prior_notice_last_day: Option<i64>,
+    pub prior_notice_last_time: Option<Time>,
+    pub prior_notice_start_day: Option<i64>,
+    pub prior_notice_start_time: Option<Time>,
+    pub prior_notice_service_id: Option<String>,
+    pub message: Option<String>,
+    pub pickup_message: Option<String>,
+    pub drop_off_message: Option<String>,
+    pub phone_number: Option<String>,
+    pub info_url: Option<String>,
+    pub booking_url: Option<String>
+}
+
+#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
+pub enum BookingType {
+    RealTime = 0,
+    SameDay = 1,
+    PriorDay = 2,
+}
+
+impl GtfsObject for BookingRule {
+    const FILE: &'static str = "booking_rules.txt";
+    const REQUIRED: bool = false;
+}
+
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Translations {
+    // This enum is confusingly documented:
+    pub table_name: String,
+    pub field_name: String,
+    pub language: String,
+    pub translation: String,
+    pub record_id: Option<String>,
+    pub record_sub_id: Option<String>,
+    pub field_value: Option<String>,
+}
+
+impl GtfsObject for Translations {
+    const FILE: &'static str = "Translations.txt";
+    const REQUIRED: bool = false;
+}
+
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct FeedInfo {
+    pub feed_publisher_name: String,
+    pub feed_publisher_url: String,
+    pub feed_lang: String,
+    pub default_lang: Option<String>,
+    #[serde(default)]
+    #[serde(with = "opt_date")]
+    pub feed_start_date: Option<NaiveDate>,
+    #[serde(default)]
+    #[serde(with = "opt_date")]
+    pub feed_end_date: Option<NaiveDate>,
+    pub feed_version: Option<String>,
+    pub feed_contact_email: Option<String>,
+    pub feed_contact_url: Option<String>,
+}
+
+mod opt_date {
+    use chrono::NaiveDate;
+    use serde::{self, Deserialize, Deserializer, Serializer};
+
+    const FORMAT: &str = "%Y%m%d";
+
+    pub fn serialize<S>(dt: &Option<NaiveDate>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match dt {
+            Some(dt) => serializer.serialize_str(&format!("{}", dt.format(FORMAT))),
+            None => serializer.serialize_str(""),
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<NaiveDate>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s: Option<String> = Option::deserialize(deserializer)?;
+        match s {
+            Some(s) => Ok(Some(
+                NaiveDate::parse_from_str(&s, FORMAT).map_err(serde::de::Error::custom)?,
+            )),
+            None => Ok(None),
+        }
+    }
+}
+
+impl GtfsObject for FeedInfo {
+    const FILE: &'static str = "feed_info.txt";
+    const REQUIRED: bool = false;
+}
+
+
+#[serde_as]
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Attributions {
+    pub attribution_id: Option<String>,
+    pub agency_id: Option<String>,
+    pub route_id: Option<String>,
+    pub trip_id: Option<String>,
+    pub organization_name: String,
+    #[serde_as(as = "Option<BoolFromInt>")]
+    pub is_producer: Option<bool>,
+    #[serde_as(as = "Option<BoolFromInt>")]
+    pub is_operator: Option<bool>,
+    #[serde_as(as = "Option<BoolFromInt>")]
+    pub is_authority: Option<bool>,
+    pub attribution_url: Option<String>,
+    pub attribution_email: Option<String>,
+    pub attribution_phone: Option<String>,
+}
+
+impl GtfsObject for Attributions {
+    const FILE: &'static str = "attributions.txt";
+    const REQUIRED: bool = false;
+}
+
+
 #[test]
 fn test_new_gtfsfile_loading() {
     let expected_data: Vec<&str> = vec!["agency.txt", "calendar.txt", "calendar_dates.txt", "fare_attributes.txt", "fare_rules.txt", "frequencies.txt", "routes.txt", "shapes.txt", "stop_times.txt", "stops.txt", "trips.txt"];
