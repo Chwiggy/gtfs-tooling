@@ -22,13 +22,26 @@ $ cargo run -- geo-json <gtfs.zip> <output>.json stops
 - [x] add all required tables
 - [ ] Validation
     - [x] Check file presence
-    - [ ] Internal Validation and Error Handling 
-- [ ] add all optional tables
+    - [ ] Validation and Error Handling 
+- [x] add all optional tables
+- [ ] database?
 - [ ] geojson outputs
     - [x] stops to geojson conversion
-    - [ ] other data
+    - [x] shapes to geojson
+    - [ ] Filter by other fields
 - [ ] queries
-- [ ] file output
+- [ ] gtfs output
     - [ ] cropping datasets
         - [ ] by time
         - [ ] by extent
+    - [ ] edit specific features
+    - [ ] scenario editing (alerts - shapes - flooding data)
+    - [ ] add delay data from different sources
+        - [ ] GTFS realtime delay data
+            - [ ] parse gtfs realtime protobuf
+            - [ ] validate gtfs-rt
+        - [ ] minimum viable delay data sets
+- [ ] Cartogram Visualisation
+    - [ ] Individual lines
+    - [ ] Subnetworks
+    - [ ] Whole networks
