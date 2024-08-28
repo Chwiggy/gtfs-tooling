@@ -27,6 +27,7 @@ $ cargo run -- geo-json <gtfs.zip> <output>.json stops
 - [ ] database?
 - [ ] geojson outputs
     - [x] stops to geojson conversion
+    - [ ] simplify stop locations down to parent station
     - [x] shapes to geojson
     - [ ] Filter by other fields
 - [ ] queries
