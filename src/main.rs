@@ -1,7 +1,9 @@
 mod functions;
+mod objects;
 
 use clap::{Args, Parser, Subcommand};
 use functions::gtfs;
+use objects::stop;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -14,6 +16,7 @@ struct Cli {
 enum Commands {
     Echo(EchoArgs),
     GeoJson(GeoJsonArgs),
+    Extract(ExtractArgs),
 }
 
 #[derive(Args)]
@@ -32,6 +35,16 @@ struct GeoJsonArgs {
     file: StandardFiles,
 
     output: std::path::PathBuf,
+}
+
+#[derive(Args)]
+struct ExtractArgs {
+    input: std::path::PathBuf,
+
+    #[command(subcommand)]
+    file: StandardFiles,
+
+    id: String
 }
 
 #[derive(Subcommand)]
@@ -132,6 +145,19 @@ fn main() {
                 StandardFiles::Shapes => {
                     let json: String = functions::simple_shapes_json(&mut gtfs_file);
                     std::fs::write(args.output, json).expect("Unable to write file");
+                }
+                _ => {
+                    println!("Not implemented yet")
+                }
+            }
+        }
+        Commands::Extract(args) => {
+            let gtfs_path = args.input;
+            let mut gtfs_file = functions::load_gtfs_file(gtfs_path);
+
+            match args.file {
+                StandardFiles::Stops => {
+                    stop::print_stop_details(args.id, &mut gtfs_file)
                 }
                 _ => {
                     println!("Not implemented yet")

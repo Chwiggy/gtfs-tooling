@@ -133,8 +133,8 @@ impl GtfsObject for Agency {
     const REQUIRED: bool = true;
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct Stop {
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub struct  Stop {
     pub stop_id: String,
     pub stop_code: Option<String>,
     pub stop_name: Option<String>,
@@ -157,7 +157,8 @@ impl GtfsObject for Stop {
     const REQUIRED: bool = true;
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
+
+#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq, Clone)]
 #[repr(u8)]
 pub enum LocationType {
     Stop = 0,
@@ -167,7 +168,7 @@ pub enum LocationType {
     BoardingArea = 4,
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq, Clone)]
 #[repr(u8)]
 pub enum WheelchairAccessibility {
     // NB: These depend on other fields in the stop field and are a bit of a mess. Please consider
@@ -309,7 +310,7 @@ pub enum BikesAllowed {
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct StopTime {
-    pub trip_id: Option<String>,
+    pub trip_id: String,
     pub arrival_time: Option<Time>,
     pub departure_time: Option<Time>,
     pub stop_id: Option<String>,
