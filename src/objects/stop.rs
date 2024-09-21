@@ -1,11 +1,12 @@
-use crate::functions::gtfs::{self, Stop, StopTime, Trip};
+use crate::functions::gtfs::{self, Route, Stop, StopTime, Trip};
 use std::collections::BTreeMap;
 
 
 pub struct FullStop {
     stop_description: Stop,
     stop_times: Vec<StopTime>,
-    associated_trips: Vec<Trip>
+    associated_trips: Vec<Trip>,
+    associated_routes: Vec<Route>
 }
 
 
@@ -18,6 +19,7 @@ pub fn print_stop_details(stop_id: String, gtfs_file: &mut gtfs::GtfsFile) {
             println!("{:?}", stop.stop_description);
             println!("{:?}", stop.stop_times);
             println!("{:?}", stop.associated_trips);
+            println!("{:?}", stop.associated_routes);
         }
     }   
 }
@@ -27,15 +29,34 @@ fn extract_stop_info(gtfs_file: &mut gtfs::GtfsFile, id: &String) -> Option<Full
     let stop = get_stop_description(gtfs_file, id)?;
     let stop_times = get_stop_times(gtfs_file, id);
     let associated_trips = get_matching_trips(gtfs_file, &stop_times);
-
+    let associated_routes = get_matching_routes(gtfs_file, &associated_trips);    
     
     let stop_info = FullStop {
         stop_description: stop,
         stop_times: stop_times,
         associated_trips: associated_trips,
+        associated_routes: associated_routes,
     };
 
     Some(stop_info)
+}
+
+fn get_matching_routes(gtfs_file: &mut gtfs::GtfsFile, trips: &[Trip]) -> Vec<Route> {
+    let routes: Vec<Route> = gtfs_file.read_vec();
+    let mut route_map: BTreeMap<String, Route> = BTreeMap::new();
+    for route in routes {
+        route_map.insert(route.route_id.to_owned(), route);
+    }
+
+    let mut matching_routes: BTreeMap<String, Route> = BTreeMap::new();
+    for trip in trips {
+        let route = route_map.remove_entry(&trip.route_id);
+        if let Some(route_entry) = route {
+            matching_routes.insert(route_entry.0, route_entry.1);
+        }
+    }
+
+    matching_routes.into_values().collect()
 }
 
 fn get_stop_description(gtfs_file: &mut gtfs::GtfsFile, id: &String) -> Option<Stop> {
