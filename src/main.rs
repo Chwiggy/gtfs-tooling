@@ -1,8 +1,10 @@
 mod functions;
 mod objects;
 
+use std::path::PathBuf;
+
 use clap::{Args, Parser, Subcommand};
-use functions::gtfs;
+use functions::{gtfs, visualize::{self, route_to_dot}};
 use objects::{route, stop};
 
 #[derive(Parser)]
@@ -17,6 +19,7 @@ enum Commands {
     Echo(EchoArgs),
     GeoJson(GeoJsonArgs),
     Extract(ExtractArgs),
+    Visualize(VisualizeArgs),
 }
 
 #[derive(Args)]
@@ -45,6 +48,17 @@ struct ExtractArgs {
     file: StandardFiles,
 
     id: String
+}
+
+#[derive(Args)]
+struct VisualizeArgs {
+    input: std::path::PathBuf,
+
+    #[command(subcommand)]
+    file: StandardFiles,
+
+    id: String,
+    output: std::path::PathBuf
 }
 
 #[derive(Subcommand)]
@@ -165,6 +179,20 @@ fn main() {
                 _ => {
                     println!("Not implemented yet")
                 }
+            }
+        },
+        Commands::Visualize(args) => {
+            let gtfs_path: PathBuf = args.input;
+            let mut gtfs_file = functions::load_gtfs_file(gtfs_path);
+
+            match args.file {
+                StandardFiles::Routes => {
+                    let dot = route_to_dot(args.id, &mut gtfs_file);
+                    std::fs::write(args.output, dot).expect("Unable to write file");
+                },
+                _ => {
+                    println!("Not implemented yet")
+                },
             }
         }
     }

@@ -1,5 +1,6 @@
 mod geodata;
 pub mod gtfs;
+pub mod visualize;
 use std::collections::HashMap;
 
 use geo_types::{geometry, Coord};

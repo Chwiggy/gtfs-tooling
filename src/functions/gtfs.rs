@@ -274,7 +274,7 @@ pub enum PickupType {
     CoordinateWithDriver = 3,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Trip {
     pub route_id: String,
     pub service_id: String,
@@ -293,14 +293,14 @@ impl GtfsObject for Trip {
     const REQUIRED: bool = true;
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, Clone)]
 #[repr(u8)]
 pub enum Direction {
     Outbound = 0,
     Inbound = 1,
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, Clone)]
 #[repr(u8)]
 pub enum BikesAllowed {
     Unknown = 0,
@@ -308,7 +308,7 @@ pub enum BikesAllowed {
     No = 2,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub struct StopTime {
     pub trip_id: String,
     pub arrival_time: Option<Time>,
@@ -326,7 +326,7 @@ pub struct StopTime {
 
 // TODO figure out how to account for different time semantics in stop_times and timeframes
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 #[repr(C)]
 pub struct Time {
     pub h: u64,
@@ -364,7 +364,7 @@ impl<'de> Deserialize<'de> for Time {
     }
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq, Clone)]
 #[repr(u8)]
 pub enum TimepointType {
     Approximate = 0,
