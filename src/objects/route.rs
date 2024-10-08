@@ -2,10 +2,13 @@ use std::collections::BTreeMap;
 
 use crate::functions::gtfs::{self, Route, Stop, StopTime, Trip};
 
+use super::stop;
+
+#[derive(Clone)]
 pub struct FullRoute {
     route_description: Route,
-    trips: Vec<Trip>,
-    associated_stop_times: Vec<StopTime>,
+    pub trips: Vec<Trip>,
+    pub associated_stop_times: Vec<StopTime>,
     associated_stops: Vec<Stop>,
 }
 
@@ -27,6 +30,18 @@ impl FullRoute {
             associated_stop_times: self.associated_stop_times,
             associated_stops: stops
         }
+    }
+
+    pub fn parent_stops(&self, gtfs_file: &mut gtfs::GtfsFile) -> Vec<Stop> {
+        let mut stops_map = stopid_stops_hash(gtfs_file);
+        let mut parents: Vec<Stop> = Vec::new();
+        for stop in &self.associated_stops {
+            if let Some(parent_station) = &stop.parent_station {
+                parents.push(stops_map.remove(parent_station).unwrap())
+            }
+        }       
+
+        parents
     }
 }
 
@@ -84,19 +99,20 @@ fn stopid_stops_hash(gtfs_file: &mut gtfs::GtfsFile) -> BTreeMap<String, Stop> {
 
 fn get_stop_times(gtfs_file: &mut gtfs::GtfsFile, trips: &[Trip]) -> Vec<StopTime> {
     let stop_times: Vec<StopTime> = gtfs_file.read_vec();
-    let mut stop_times_map: BTreeMap<String, StopTime> = BTreeMap::new();
-    for stop_time in stop_times {
-        stop_times_map.insert(stop_time.trip_id.to_owned(), stop_time);
+
+    let mut trip_ids: Vec<String> = Vec::new();
+    for trip in trips {
+        trip_ids.push(trip.trip_id.to_owned());
     }
 
-    let mut matching_stop_times: BTreeMap<String, StopTime> = BTreeMap::new();
-    for trip in trips {
-        let stop_time = stop_times_map.remove_entry(&trip.trip_id);
-        if let Some(stop_time_entry) = stop_time {
-            matching_stop_times.insert(stop_time_entry.0, stop_time_entry.1);
+    let mut matching_stop_times: Vec<StopTime> = Vec::new();
+    for stop_time in stop_times {
+        if !trip_ids.contains(&stop_time.trip_id) {
+            matching_stop_times.push(stop_time);
         }
     }
-    matching_stop_times.into_values().collect()
+
+    matching_stop_times
 }
 
 fn get_trips(gtfs_file: &mut gtfs::GtfsFile, route_id: &str) -> Vec<Trip> {
