@@ -178,7 +178,7 @@ pub enum WheelchairAccessibility {
     No = 2,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Route {
     pub route_id: String,
     pub agency_id: Option<String>,
@@ -200,14 +200,14 @@ impl GtfsObject for Route {
     const REQUIRED: bool = true;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum RouteType {
     Standard(StandardRouteType),
     HVT(HVTRouteType),
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, Clone)]
 #[repr(u8)]
 pub enum StandardRouteType {
     Tram = 0,
@@ -222,7 +222,7 @@ pub enum StandardRouteType {
     Monorail = 12,
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, Clone)]
 #[repr(u16)]
 pub enum HVTRouteType {
     /*
@@ -265,7 +265,7 @@ pub enum HVTRouteType {
     HorseDrawnCarriage = 1702,
 }
 
-#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq, Clone)]
 #[repr(u8)]
 pub enum PickupType {
     RegularSchedule = 0,

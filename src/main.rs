@@ -3,7 +3,7 @@ mod objects;
 
 use clap::{Args, Parser, Subcommand};
 use functions::gtfs;
-use objects::stop;
+use objects::{route, stop};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -158,6 +158,9 @@ fn main() {
             match args.file {
                 StandardFiles::Stops => {
                     stop::print_stop_details(args.id, &mut gtfs_file)
+                }
+                StandardFiles::Routes => {
+                    route::print_route_details(&mut gtfs_file, args.id);
                 }
                 _ => {
                     println!("Not implemented yet")
