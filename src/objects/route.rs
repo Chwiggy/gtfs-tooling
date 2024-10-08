@@ -10,40 +10,40 @@ pub struct FullRoute {
     pub associated_stops: Vec<Stop>,
 }
 
-impl FullRoute {
-    pub fn add_parent_stops(self, gtfs_file: &mut gtfs::GtfsFile) -> Self {
-        let stops: Vec<Stop> = gtfs_file.read_vec();
-        let stops_map = stopid_stops_hash(&stops);
-        let mut stops = self.associated_stops.clone();
-        for stop in self.associated_stops {
-            if let Some(parent_id) = stop.parent_station {
-                let parent_stop = stops_map.get(&parent_id).unwrap();
-                stops.push(parent_stop.clone());
-            }
-        }
+// impl FullRoute {
+//     pub fn add_parent_stops(self, gtfs_file: &mut gtfs::GtfsFile) -> Self {
+//         let stops: Vec<Stop> = gtfs_file.read_vec();
+//         let stops_map = stopid_stops_hash(&stops);
+//         let mut stops = self.associated_stops.clone();
+//         for stop in self.associated_stops {
+//             if let Some(parent_id) = stop.parent_station {
+//                 let parent_stop = stops_map.get(&parent_id).unwrap();
+//                 stops.push(parent_stop.clone());
+//             }
+//         }
         
 
-        FullRoute {
-            route_description: self.route_description,
-            trips: self.trips,
-            associated_stop_times: self.associated_stop_times,
-            associated_stops: stops
-        }
-    }
+//         FullRoute {
+//             route_description: self.route_description,
+//             trips: self.trips,
+//             associated_stop_times: self.associated_stop_times,
+//             associated_stops: stops
+//         }
+//     }
 
-    pub fn parent_stops(&self, gtfs_file: &mut gtfs::GtfsFile) -> Vec<Stop> {
-        let mut stops: Vec<Stop> = gtfs_file.read_vec();
-        let mut stops_map = stopid_stops_hash(&stops);
-        let mut parents: Vec<Stop> = Vec::new();
-        for stop in &self.associated_stops {
-            if let Some(parent_station) = &stop.parent_station {
-                parents.push(stops_map.remove(parent_station).unwrap())
-            }
-        }       
+//     pub fn parent_stops(&self, gtfs_file: &mut gtfs::GtfsFile) -> Vec<Stop> {
+//         let mut stops: Vec<Stop> = gtfs_file.read_vec();
+//         let mut stops_map = stopid_stops_hash(&stops);
+//         let mut parents: Vec<Stop> = Vec::new();
+//         for stop in &self.associated_stops {
+//             if let Some(parent_station) = &stop.parent_station {
+//                 parents.push(stops_map.remove(parent_station).unwrap())
+//             }
+//         }       
 
-        parents
-    }
-}
+//         parents
+//     }
+// }
 
 pub fn print_route_details(gtfs_file: &mut gtfs::GtfsFile, route_id:String) {
     let route = extract_route_info(gtfs_file, &route_id);

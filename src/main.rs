@@ -4,7 +4,7 @@ mod objects;
 use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
-use functions::{gtfs, visualize::{self, route_to_dot}};
+use functions::{gtfs, visualize};
 use objects::{route, stop};
 
 #[derive(Parser)]
@@ -187,7 +187,7 @@ fn main() {
 
             match args.file {
                 StandardFiles::Routes => {
-                    let dot = route_to_dot(args.id, &mut gtfs_file);
+                    let dot = visualize::route_to_dot(args.id, &mut gtfs_file);
                     std::fs::write(args.output, dot).expect("Unable to write file");
                 },
                 _ => {
