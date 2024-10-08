@@ -1,3 +1,6 @@
 /target
 *.json
+*.dot
+*.svg
+*.png
 test_data/spfv_de_2024.zip
