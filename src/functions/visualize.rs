@@ -9,6 +9,7 @@ use super::gtfs::{self, StopTime};
 pub fn route_to_dot(route_id: String, gtfs_file: &mut gtfs::GtfsFile) -> String {
     
     let route = objects::route::extract_route_info(gtfs_file, &route_id).unwrap();
+    println!("Extracting Graph for line {:?}", route.route_description.route_short_name);
     // let parents = stopid_stops_hash(&route.parent_stops(gtfs_file));
     let stops = stopid_stops_hash(&route.associated_stops);
     
@@ -48,7 +49,7 @@ pub fn route_to_dot(route_id: String, gtfs_file: &mut gtfs::GtfsFile) -> String 
                     } else {
                         stop_id = stop_time.clone().stop_id.unwrap();
                     }
-                    let edge = (prev_stop_id.to_owned(), stop_time.clone().stop_id.unwrap());
+                    let edge = (prev_stop_id.to_owned(), stop_id.clone());
                     match edges.get(&edge) {
                         None => {edges.insert(edge, 1);},
                         Some(count) => {edges.insert(edge, count + 1);}
@@ -57,16 +58,9 @@ pub fn route_to_dot(route_id: String, gtfs_file: &mut gtfs::GtfsFile) -> String 
                 }
             }
         }
-    }
-
-    // for edge in edges.keys() {
-    //     if let Some(reverse_count) = edges.remove(&(edge.1, edge.0)) {
-    //         let count = edges.get(edge).unwrap();
-    //         edges.insert(edge.clone(), count + reverse_count);
-    //     }
-    // }
+    }                                         
     
-    let mut graph: petgraph::prelude::GraphMap<&str, &u64, petgraph::Undirected> = petgraph::graphmap::UnGraphMap::new();
+    let mut graph: petgraph::prelude::GraphMap<&str, &u64, petgraph::Directed> = petgraph::graphmap::GraphMap::new();
     
     for (edge, count) in edges.iter() {
         graph.add_edge(edge.0.as_ref(), edge.1.as_ref(), count);

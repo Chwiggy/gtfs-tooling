@@ -49,6 +49,8 @@
           cargo-watch
           rust-analyzer
           cmake
+
+          graphviz
         ];
       };
     });
