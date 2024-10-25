@@ -60,7 +60,7 @@ pub fn route_to_dot(route_id: String, gtfs_file: &mut gtfs::GtfsFile) -> String 
         }
     }                                         
     
-    let mut graph: petgraph::prelude::GraphMap<&str, &u64, petgraph::Directed> = petgraph::graphmap::GraphMap::new();
+    let mut graph: petgraph::prelude::GraphMap<&str, &u64, petgraph::Undirected> = petgraph::graphmap::UnGraphMap::new();
     
     let parent_stations = route.all_stops(gtfs_file);
     let parents = stopid_stops_hash(&parent_stations);
@@ -86,7 +86,6 @@ pub fn route_to_dot(route_id: String, gtfs_file: &mut gtfs::GtfsFile) -> String 
         graph.add_edge(edge.0.as_ref(), edge.1.as_ref(), count);
     }
 
-    
     format!("{:?}", petgraph::dot::Dot::new(&graph))
 
 }
