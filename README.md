@@ -1,3 +1,5 @@
+**Moved to [Gitlab](https://gitlab.com/chwiggy/gtfs-tooling/)**
+
 # GTFS Tools
 This is the attempt to build up a toolset to parse, query, and edit gtfs datasets.
 
